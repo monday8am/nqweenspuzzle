@@ -55,6 +55,7 @@ class GameViewModel : ViewModel() {
 
     private fun handleCellTap(state: GameState, position: Position): GameState {
         return when {
+            // remove queen
             position in state.queens -> {
                 state.copy(
                     queens = state.queens - position,
@@ -62,11 +63,19 @@ class GameViewModel : ViewModel() {
                 )
             }
 
-            state.queens.size < state.boardSize -> {
-                val newState = state.copy(
-                    queens = state.queens + position,
-                    selectedQueen = position
-                )
+            // add queen
+            state.queens.size <= state.boardSize -> {
+                val newState= if (state.selectedQueen != null && NQueensLogic.findConflictingQueens(state.queens).isNotEmpty()) {
+                    state.copy(
+                        queens = state.queens - state.selectedQueen + position,
+                        selectedQueen = position
+                    )
+                } else {
+                    state.copy(
+                        queens = state.queens + position,
+                        selectedQueen = position
+                    )
+                }
                 // Start timer on first queen placement
                 if (state.queens.isEmpty() && state.gameStartTime == null) {
                     newState.copy(gameStartTime = System.currentTimeMillis())
@@ -86,7 +95,6 @@ class GameViewModel : ViewModel() {
             else -> state // No change
         }
     }
-
 
     private fun buildRenderState(state: GameState): BoardRenderState {
         val selectedForHints = if (state.showHints) state.selectedQueen else null

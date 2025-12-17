@@ -93,7 +93,8 @@ object NQueensLogic {
                         hasQueen = hasQueen,
                         isConflicting = isConflicting,
                         isAttacked = isAttacked,
-                        isLightSquare = isLightSquare
+                        isLightSquare = isLightSquare,
+                        isSelected = position == selectedQueen,
                     )
                 )
             }
