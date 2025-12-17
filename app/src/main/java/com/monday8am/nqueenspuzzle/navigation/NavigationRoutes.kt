@@ -1,10 +1,12 @@
 package com.monday8am.nqueenspuzzle.navigation
 
-object NavigationRoutes {
-    const val GAME_SCREEN = "game"
-    const val RESULTS_SCREEN = "results/{boardSize}/{elapsedSeconds}"
+import kotlinx.serialization.Serializable
 
-    fun resultsScreen(boardSize: Int, elapsedSeconds: Long): String {
-        return "results/$boardSize/$elapsedSeconds"
-    }
-}
+@Serializable
+object GameRoute
+
+@Serializable
+data class ResultsRoute(
+    val boardSize: Int,
+    val elapsedSeconds: Long
+)

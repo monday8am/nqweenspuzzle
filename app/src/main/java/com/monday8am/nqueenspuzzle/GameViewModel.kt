@@ -97,6 +97,7 @@ class GameViewModel : ViewModel() {
         )
 
         // Capture end time and emit navigation event when puzzle is solved
+        // TODO: deal with this side effect
         if (renderState.isSolved && state.gameEndTime == null) {
             val updatedState = state.copy(gameEndTime = System.currentTimeMillis())
             _gameState.value = updatedState
@@ -106,8 +107,10 @@ class GameViewModel : ViewModel() {
                 viewModelScope.launch {
                     _navigationEvent.emit(
                         NavigationEvent.NavigateToResults(
-                            boardSize = state.boardSize,
-                            elapsedSeconds = elapsedSeconds
+                            route = com.monday8am.nqueenspuzzle.navigation.ResultsRoute(
+                                boardSize = state.boardSize,
+                                elapsedSeconds = elapsedSeconds
+                            )
                         )
                     )
                 }

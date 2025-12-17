@@ -7,11 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.monday8am.nqueenspuzzle.GameAction
 import com.monday8am.nqueenspuzzle.GameViewModel
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
@@ -24,17 +23,11 @@ fun NQueensNavHost(
     scoreRepository: ScoreRepository,
     navController: NavHostController = rememberNavController()
 ) {
-    // Observe navigation events from ViewModel
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
                 is NavigationEvent.NavigateToResults -> {
-                    navController.navigate(
-                        NavigationRoutes.resultsScreen(
-                            boardSize = event.boardSize,
-                            elapsedSeconds = event.elapsedSeconds
-                        )
-                    )
+                    navController.navigate(event.route)
                 }
             }
         }
@@ -43,26 +36,19 @@ fun NQueensNavHost(
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = NavigationRoutes.GAME_SCREEN,
+            startDestination = GameRoute,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(NavigationRoutes.GAME_SCREEN) {
+            composable<GameRoute> {
                 GameScreen(viewModel = viewModel)
             }
 
-            composable(
-                route = NavigationRoutes.RESULTS_SCREEN,
-                arguments = listOf(
-                    navArgument("boardSize") { type = NavType.IntType },
-                    navArgument("elapsedSeconds") { type = NavType.LongType }
-                )
-            ) { backStackEntry ->
-                val boardSize = backStackEntry.arguments?.getInt("boardSize") ?: 8
-                val elapsedSeconds = backStackEntry.arguments?.getLong("elapsedSeconds") ?: 0L
+            composable<ResultsRoute> { backStackEntry ->
+                val resultsRoute = backStackEntry.toRoute<ResultsRoute>()
 
                 ResultsScreen(
-                    boardSize = boardSize,
-                    elapsedSeconds = elapsedSeconds,
+                    boardSize = resultsRoute.boardSize,
+                    elapsedSeconds = resultsRoute.elapsedSeconds,
                     scoreRepository = scoreRepository,
                     onNewGameClick = {
                         viewModel.dispatch(GameAction.Reset)
