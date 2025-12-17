@@ -73,6 +73,7 @@ object NQueensLogic {
         boardSize: Int,
         queens: Set<Position>,
         selectedQueen: Position?,
+        hintPosition: Position? = null
     ): BoardRenderState {
         val conflictingQueens = findConflictingQueens(queens)
         val attackedCells = selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
@@ -85,6 +86,7 @@ object NQueensLogic {
                 val hasQueen = position in queens
                 val isConflicting = hasQueen && position in conflictingQueens
                 val isAttacked = position in attackedCells && !hasQueen
+                val isHint = position == hintPosition && !hasQueen
                 val isLightSquare = (row + col) % 2 == 0
 
                 cells.add(
@@ -93,6 +95,7 @@ object NQueensLogic {
                         hasQueen = hasQueen,
                         isConflicting = isConflicting,
                         isAttacked = isAttacked,
+                        isHint = isHint,
                         isLightSquare = isLightSquare
                     )
                 )
@@ -108,9 +111,16 @@ object NQueensLogic {
         )
     }
 
-    fun getHint(): Position {
-        // TODO not implemented yet!
-        return Position(0, 0)
+    fun getHint(queens: Set<Position>, boardSize: Int): Position? {
+        for (row in 0 until boardSize) {
+            for (col in 0 until boardSize) {
+                val pos = Position(row, col)
+                if (pos !in queens && queens.none { hasConflict(pos, it) }) {
+                    return pos
+                }
+            }
+        }
+        return null
     }
 
     fun getSolution(): Set<Position> {

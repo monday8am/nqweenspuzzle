@@ -30,6 +30,7 @@ private val DarkSquareColor = Color(0xFF739552)
 private val AttackedLightColor = LightSquareColor
 private val AttackedDarkColor = DarkSquareColor
 private val ConflictColor = Color(0xFFE53935)
+private val HintColor = Color(0xFF4CAF50)
 private val QueenColor = Color(0xFF1B1B1B)
 
 @Composable
@@ -61,6 +62,7 @@ private fun Cell(
     onClick: () -> Unit
 ) {
     val backgroundColor = when {
+        cell.isHint -> HintColor
         cell.isConflicting -> ConflictColor
         cell.isAttacked && cell.isLightSquare -> AttackedLightColor
         cell.isAttacked && !cell.isLightSquare -> AttackedDarkColor

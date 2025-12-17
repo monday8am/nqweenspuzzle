@@ -14,7 +14,8 @@ class GameViewModel : ViewModel() {
         val boardSize: Int = 8,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
-        val showHints: Boolean = true
+        val showHints: Boolean = true,
+        val showingHint: Boolean = false
     )
 
     private val _gameState = MutableStateFlow(GameState())
@@ -30,7 +31,7 @@ class GameViewModel : ViewModel() {
 
     private fun reduce(state: GameState, action: GameAction): GameState {
         return when (action) {
-            is GameAction.TapCell -> handleCellTap(state, action.position)
+            is GameAction.TapCell -> handleCellTap(state, action.position).copy(showingHint = false)
             is GameAction.SetBoardSize -> GameState(
                 boardSize = action.size,
                 showHints = state.showHints
@@ -39,6 +40,7 @@ class GameViewModel : ViewModel() {
                 boardSize = state.boardSize,
                 showHints = state.showHints
             )
+            is GameAction.ToggleHint -> state.copy(showingHint = !state.showingHint)
         }
     }
 
@@ -73,10 +75,15 @@ class GameViewModel : ViewModel() {
 
     private fun buildRenderState(state: GameState): BoardRenderState {
         val selectedForHints = if (state.showHints) state.selectedQueen else null
+        val hintPosition = if (state.showingHint) {
+            NQueensLogic.getHint(state.queens, state.boardSize)
+        } else null
+
         return NQueensLogic.buildBoardRenderState(
             boardSize = state.boardSize,
             queens = state.queens,
-            selectedQueen = selectedForHints
+            selectedQueen = selectedForHints,
+            hintPosition = hintPosition
         )
     }
 }

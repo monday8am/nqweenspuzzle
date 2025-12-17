@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -91,12 +90,20 @@ fun GameScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Reset button
-        Button(
-            onClick = { viewModel.dispatch(GameAction.Reset) },
-            modifier = Modifier.width(120.dp)
+        // Action buttons
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Reset")
+            Button(
+                onClick = { viewModel.dispatch(GameAction.Reset) }
+            ) {
+                Text("Reset")
+            }
+            Button(
+                onClick = { viewModel.dispatch(GameAction.ToggleHint) }
+            ) {
+                Text("Hint")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
