@@ -73,10 +73,10 @@ object NQueensLogic {
         boardSize: Int,
         queens: Set<Position>,
         selectedQueen: Position?,
-        elapsedTimeMs: Long
     ): BoardRenderState {
         val conflictingQueens = findConflictingQueens(queens)
         val attackedCells = selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
+        val elapsedTimeMs = System.currentTimeMillis()
 
         val cells = mutableListOf<CellState>()
         for (row in 0 until boardSize) {
@@ -104,7 +104,18 @@ object NQueensLogic {
             cells = cells,
             queensRemaining = boardSize - queens.size,
             isSolved = isSolved(queens, boardSize),
-            elapsedTimeMs = elapsedTimeMs
+            elapsedTimeMs = System.currentTimeMillis() - elapsedTimeMs,
         )
+    }
+
+    fun getHint(): Position {
+        // TODO not implemented yet!
+        return Position(0, 0)
+    }
+
+    fun getSolution(): Set<Position> {
+        // TODO not implemented yet!
+        // Evaluate the closest solution?
+        return emptySet()
     }
 }

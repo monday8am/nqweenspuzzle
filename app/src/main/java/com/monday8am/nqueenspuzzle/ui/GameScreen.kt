@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.monday8am.nqueenspuzzle.GameAction
 import com.monday8am.nqueenspuzzle.GameViewModel
 
 @Composable
@@ -51,7 +52,7 @@ fun GameScreen(
             listOf(4, 5, 6, 7, 8).forEach { size ->
                 FilterChip(
                     selected = state.boardSize == size,
-                    onClick = { viewModel.setBoardSize(size) },
+                    onClick = { viewModel.dispatch(GameAction.SetBoardSize(size)) },
                     label = { Text("$size x $size") },
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
@@ -71,7 +72,7 @@ fun GameScreen(
         // Game board
         GameBoard(
             state = state,
-            onCellTap = { position -> viewModel.onCellTap(position) },
+            onCellTap = { position -> viewModel.dispatch(GameAction.TapCell(position)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f, fill = false)
@@ -92,7 +93,7 @@ fun GameScreen(
 
         // Reset button
         Button(
-            onClick = { viewModel.reset() },
+            onClick = { viewModel.dispatch(GameAction.Reset) },
             modifier = Modifier.width(120.dp)
         ) {
             Text("Reset")

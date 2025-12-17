@@ -9,22 +9,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.CellState
 import com.monday8am.nqueenspuzzle.models.Position
 
-private val LightSquareColor = Color(0xFFF0D9B5)
-private val DarkSquareColor = Color(0xFFB58863)
-private val AttackedLightColor = Color(0xFFE8C4A0)
-private val AttackedDarkColor = Color(0xFFA07855)
+private val LightSquareColor = Color(0xFFebecd0)
+private val DarkSquareColor = Color(0xFF739552)
+private val AttackedLightColor = LightSquareColor
+private val AttackedDarkColor = DarkSquareColor
 private val ConflictColor = Color(0xFFE53935)
 private val QueenColor = Color(0xFF1B1B1B)
 
@@ -84,6 +88,29 @@ private fun Cell(
                 color = if (cell.isConflicting) Color.White else QueenColor,
                 textAlign = TextAlign.Center
             )
+        } else if (cell.isAttacked) {
+            Icon(
+                imageVector = Icons.Outlined.Close,
+                contentDescription = "Attacked",
+                tint = Color.Black.copy(alpha = 0.2f),
+            )
         }
     }
+}
+
+@Preview(showBackground = true, name = "8x8 Board - In Progress")
+@Composable
+private fun GameBoardPreviewInProgress() {
+    val inProgressState = BoardRenderState(
+        boardSize = 8,
+        cells = cells,
+        queensRemaining = 5, // 8 - 3
+        isSolved = false,
+        elapsedTimeMs = 45000L // e.g., 45 seconds
+    )
+
+    GameBoard(
+        state = inProgressState,
+        onCellTap = { _ -> },
+    )
 }

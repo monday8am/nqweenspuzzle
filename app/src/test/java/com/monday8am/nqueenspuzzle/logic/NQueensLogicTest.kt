@@ -290,8 +290,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 8,
             queens = emptySet(),
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
         assertEquals(64, state.cells.size)
     }
@@ -301,8 +300,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = emptySet(),
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
         assertEquals(16, state.cells.size)
     }
@@ -313,8 +311,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = queens,
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
 
         val queenCells = state.cells.filter { it.hasQueen }
@@ -332,8 +329,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = queens,
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
 
         val conflictingCells = state.cells.filter { it.isConflicting }
@@ -346,8 +342,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = setOf(queen),
-            selectedQueen = queen,
-            elapsedTimeMs = 0
+            selectedQueen = queen
         )
 
         val attackedCells = state.cells.filter { it.isAttacked }
@@ -361,8 +356,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = setOf(Position(0, 0)),
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
 
         val attackedCells = state.cells.filter { it.isAttacked }
@@ -374,8 +368,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = emptySet(),
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
 
         // (0,0) should be light
@@ -391,8 +384,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 8,
             queens = setOf(Position(0, 0), Position(1, 2), Position(2, 4)),
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
         assertEquals(5, state.queensRemaining)
     }
@@ -408,8 +400,7 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = solution,
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
         assertTrue(state.isSolved)
         assertEquals(0, state.queensRemaining)
@@ -420,20 +411,8 @@ class NQueensLogicTest {
         val state = NQueensLogic.buildBoardRenderState(
             boardSize = 4,
             queens = setOf(Position(0, 0)),
-            selectedQueen = null,
-            elapsedTimeMs = 0
+            selectedQueen = null
         )
         assertFalse(state.isSolved)
-    }
-
-    @Test
-    fun `buildBoardRenderState preserves elapsed time`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = emptySet(),
-            selectedQueen = null,
-            elapsedTimeMs = 12345L
-        )
-        assertEquals(12345L, state.elapsedTimeMs)
     }
 }
