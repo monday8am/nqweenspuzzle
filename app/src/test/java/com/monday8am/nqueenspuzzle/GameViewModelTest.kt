@@ -41,11 +41,11 @@ class GameViewModelTest {
         assertEquals(64, state.cells.size)
     }
 
-    // ==================== onCellTap - Placing Queens ====================
+    // ==================== TapCell - Placing Queens ====================
 
     @Test
     fun `tapping empty cell places a queen`() {
-        viewModel.onCellTap(Position(0, 0))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
 
         val state = viewModel.renderState.value
         assertTrue(state.cells.find { it.position == Position(0, 0) }!!.hasQueen)
@@ -54,9 +54,9 @@ class GameViewModelTest {
 
     @Test
     fun `can place multiple queens`() {
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.onCellTap(Position(2, 1))
-        viewModel.onCellTap(Position(4, 3))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(2, 1)))
+        viewModel.dispatch(GameAction.TapCell(Position(4, 3)))
 
         val state = viewModel.renderState.value
         val queenCells = state.cells.filter { it.hasQueen }
@@ -64,12 +64,12 @@ class GameViewModelTest {
         assertEquals(5, state.queensRemaining)
     }
 
-    // ==================== onCellTap - Selecting Queens ====================
+    // ==================== TapCell - Selecting Queens ====================
 
     @Test
     fun `tapping queen selects it and shows attacked cells`() {
-        viewModel.onCellTap(Position(3, 3)) // Place queen
-        viewModel.onCellTap(Position(3, 3)) // Select it
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place queen
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select it
 
         val state = viewModel.renderState.value
         val attackedCells = state.cells.filter { it.isAttacked }
@@ -78,14 +78,14 @@ class GameViewModelTest {
 
     @Test
     fun `selecting different queen changes attacked cells`() {
-        viewModel.onCellTap(Position(0, 0)) // Place first queen
-        viewModel.onCellTap(Position(7, 7)) // Place second queen
-        viewModel.onCellTap(Position(0, 0)) // Select first
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Place first queen
+        viewModel.dispatch(GameAction.TapCell(Position(7, 7))) // Place second queen
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Select first
 
         val state1 = viewModel.renderState.value
         val attacked1 = state1.cells.filter { it.isAttacked }.map { it.position }.toSet()
 
-        viewModel.onCellTap(Position(7, 7)) // Select second
+        viewModel.dispatch(GameAction.TapCell(Position(7, 7))) // Select second
 
         val state2 = viewModel.renderState.value
         val attacked2 = state2.cells.filter { it.isAttacked }.map { it.position }.toSet()
@@ -93,13 +93,13 @@ class GameViewModelTest {
         assertNotEquals(attacked1, attacked2)
     }
 
-    // ==================== onCellTap - Removing Queens ====================
+    // ==================== TapCell - Removing Queens ====================
 
     @Test
     fun `tapping selected queen removes it`() {
-        viewModel.onCellTap(Position(3, 3)) // Place
-        viewModel.onCellTap(Position(3, 3)) // Select
-        viewModel.onCellTap(Position(3, 3)) // Remove
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Remove
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.find { it.position == Position(3, 3) }!!.hasQueen)
@@ -108,9 +108,9 @@ class GameViewModelTest {
 
     @Test
     fun `removing queen clears attacked cells`() {
-        viewModel.onCellTap(Position(3, 3)) // Place
-        viewModel.onCellTap(Position(3, 3)) // Select
-        viewModel.onCellTap(Position(3, 3)) // Remove
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Remove
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.any { it.isAttacked })
@@ -120,8 +120,8 @@ class GameViewModelTest {
 
     @Test
     fun `conflicting queens are marked`() {
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.onCellTap(Position(0, 5)) // Same row - conflict
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 5))) // Same row - conflict
 
         val state = viewModel.renderState.value
         assertTrue(state.cells.find { it.position == Position(0, 0) }!!.isConflicting)
@@ -130,22 +130,22 @@ class GameViewModelTest {
 
     @Test
     fun `non-conflicting queens are not marked`() {
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.onCellTap(Position(2, 1)) // No conflict
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(2, 1))) // No conflict
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.find { it.position == Position(0, 0) }!!.isConflicting)
         assertFalse(state.cells.find { it.position == Position(2, 1) }!!.isConflicting)
     }
 
-    // ==================== reset ====================
+    // ==================== Reset ====================
 
     @Test
     fun `reset clears all queens`() {
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.onCellTap(Position(1, 2))
-        viewModel.onCellTap(Position(3, 4))
-        viewModel.reset()
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(1, 2)))
+        viewModel.dispatch(GameAction.TapCell(Position(3, 4)))
+        viewModel.dispatch(GameAction.Reset)
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.any { it.hasQueen })
@@ -154,9 +154,9 @@ class GameViewModelTest {
 
     @Test
     fun `reset preserves board size`() {
-        viewModel.setBoardSize(4)
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.reset()
+        viewModel.dispatch(GameAction.SetBoardSize(4))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.Reset)
 
         val state = viewModel.renderState.value
         assertEquals(4, state.boardSize)
@@ -165,19 +165,19 @@ class GameViewModelTest {
 
     @Test
     fun `reset clears selection`() {
-        viewModel.onCellTap(Position(3, 3))
-        viewModel.onCellTap(Position(3, 3)) // Select
-        viewModel.reset()
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3)))
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select
+        viewModel.dispatch(GameAction.Reset)
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.any { it.isAttacked })
     }
 
-    // ==================== setBoardSize ====================
+    // ==================== SetBoardSize ====================
 
     @Test
     fun `setBoardSize changes board dimensions`() {
-        viewModel.setBoardSize(4)
+        viewModel.dispatch(GameAction.SetBoardSize(4))
 
         val state = viewModel.renderState.value
         assertEquals(4, state.boardSize)
@@ -186,9 +186,9 @@ class GameViewModelTest {
 
     @Test
     fun `setBoardSize clears existing queens`() {
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.onCellTap(Position(1, 2))
-        viewModel.setBoardSize(6)
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(1, 2)))
+        viewModel.dispatch(GameAction.SetBoardSize(6))
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.any { it.hasQueen })
@@ -197,10 +197,10 @@ class GameViewModelTest {
 
     @Test
     fun `setBoardSize updates queensRemaining`() {
-        viewModel.setBoardSize(5)
+        viewModel.dispatch(GameAction.SetBoardSize(5))
         assertEquals(5, viewModel.renderState.value.queensRemaining)
 
-        viewModel.setBoardSize(4)
+        viewModel.dispatch(GameAction.SetBoardSize(4))
         assertEquals(4, viewModel.renderState.value.queensRemaining)
     }
 
@@ -208,12 +208,12 @@ class GameViewModelTest {
 
     @Test
     fun `isSolved true when valid solution placed`() {
-        viewModel.setBoardSize(4)
+        viewModel.dispatch(GameAction.SetBoardSize(4))
         // Known 4-queens solution
-        viewModel.onCellTap(Position(0, 1))
-        viewModel.onCellTap(Position(1, 3))
-        viewModel.onCellTap(Position(2, 0))
-        viewModel.onCellTap(Position(3, 2))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 1)))
+        viewModel.dispatch(GameAction.TapCell(Position(1, 3)))
+        viewModel.dispatch(GameAction.TapCell(Position(2, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(3, 2)))
 
         val state = viewModel.renderState.value
         assertTrue(state.isSolved)
@@ -222,12 +222,12 @@ class GameViewModelTest {
 
     @Test
     fun `isSolved false when queens have conflicts`() {
-        viewModel.setBoardSize(4)
+        viewModel.dispatch(GameAction.SetBoardSize(4))
         // Invalid - all in same row
-        viewModel.onCellTap(Position(0, 0))
-        viewModel.onCellTap(Position(0, 1))
-        viewModel.onCellTap(Position(0, 2))
-        viewModel.onCellTap(Position(0, 3))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 1)))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 2)))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 3)))
 
         val state = viewModel.renderState.value
         assertFalse(state.isSolved)

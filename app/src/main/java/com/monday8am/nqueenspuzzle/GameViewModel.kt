@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class GameViewModel : ViewModel() {
 
-    private data class GameState(
+    data class GameState(
         val boardSize: Int = 8,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
-        val elapsedTimeMs: Map<Int, Long> = emptyMap(),
+        val showHints: Boolean = true
     )
 
     private val _gameState = MutableStateFlow(GameState())
@@ -22,49 +22,61 @@ class GameViewModel : ViewModel() {
     private val _renderState = MutableStateFlow(buildRenderState(_gameState.value))
     val renderState: StateFlow<BoardRenderState> = _renderState.asStateFlow()
 
-    fun onCellTap(position: Position) {
-        val currentState = _gameState.value
+    fun dispatch(action: GameAction) {
+        val newState = reduce(_gameState.value, action)
+        _gameState.value = newState
+        _renderState.value = buildRenderState(newState)
+    }
 
-        val newState = if (position !in currentState.queens) {
-            if (currentState.queens.size == currentState.boardSize) {
-                // TODO : notify error!
-                currentState
-            } else {
-                currentState.copy(
-                    queens = currentState.queens + position,
+    private fun reduce(state: GameState, action: GameAction): GameState {
+        return when (action) {
+            is GameAction.TapCell -> handleCellTap(state, action.position)
+            is GameAction.SetBoardSize -> GameState(
+                boardSize = action.size,
+                showHints = state.showHints
+            )
+            is GameAction.Reset -> GameState(
+                boardSize = state.boardSize,
+                showHints = state.showHints
+            )
+        }
+    }
+
+    private fun handleCellTap(state: GameState, position: Position): GameState {
+        return when {
+            position in state.queens -> {
+                state.copy(
+                    queens = state.queens - position,
+                    selectedQueen = null
+                )
+            }
+
+            state.queens.size < state.boardSize -> {
+                state.copy(
+                    queens = state.queens + position,
                     selectedQueen = position
                 )
             }
-        } else {
-            currentState.copy(
-                queens = currentState.queens - position,
-                selectedQueen = null
-            )
+
+            state.selectedQueen != null -> {
+                state.copy(
+                    queens = state.queens - state.selectedQueen + position,
+                    selectedQueen = position
+                )
+            }
+
+            // Improbable case: Tapped on an empty cell, board is full, and no queen is selected.
+            else -> state // No change
         }
-
-        _gameState.value = newState
-        _renderState.value = buildRenderState(newState)
     }
 
-    fun reset() {
-        val currentState = _gameState.value
-        val newState = GameState(boardSize = currentState.boardSize)
-        _gameState.value = newState
-        _renderState.value = buildRenderState(newState)
-    }
-
-    fun setBoardSize(size: Int) {
-        val newState = GameState(boardSize = size)
-        _gameState.value = newState
-        _renderState.value = buildRenderState(newState)
-    }
 
     private fun buildRenderState(state: GameState): BoardRenderState {
+        val selectedForHints = if (state.showHints) state.selectedQueen else null
         return NQueensLogic.buildBoardRenderState(
             boardSize = state.boardSize,
             queens = state.queens,
-            selectedQueen = state.selectedQueen,
-            elapsedTimeMs = state.elapsedTimeMs.getOrDefault(state.boardSize, 0L)
+            selectedQueen = selectedForHints
         )
     }
 }
