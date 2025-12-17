@@ -25,25 +25,21 @@ class GameViewModel : ViewModel() {
     fun onCellTap(position: Position) {
         val currentState = _gameState.value
 
-        val newState = when {
-            // Tapping on empty cell: place a queen
-            position !in currentState.queens -> {
+        val newState = if (position !in currentState.queens) {
+            if (currentState.queens.size == currentState.boardSize) {
+                // TODO : notify error!
+                currentState
+            } else {
                 currentState.copy(
                     queens = currentState.queens + position,
-                    selectedQueen = null
+                    selectedQueen = position
                 )
             }
-            // Tapping on selected queen: remove it
-            position == currentState.selectedQueen -> {
-                currentState.copy(
-                    queens = currentState.queens - position,
-                    selectedQueen = null
-                )
-            }
-            // Tapping on unselected queen: select it
-            else -> {
-                currentState.copy(selectedQueen = position)
-            }
+        } else {
+            currentState.copy(
+                queens = currentState.queens - position,
+                selectedQueen = null
+            )
         }
 
         _gameState.value = newState

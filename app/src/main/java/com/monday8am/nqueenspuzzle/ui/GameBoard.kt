@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,10 +25,10 @@ import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.CellState
 import com.monday8am.nqueenspuzzle.models.Position
 
-private val LightSquareColor = Color(0xFFF0D9B5)
-private val DarkSquareColor = Color(0xFFB58863)
-private val AttackedLightColor = Color(0xFFE8C4A0)
-private val AttackedDarkColor = Color(0xFFA07855)
+private val LightSquareColor = Color(0xFFebecd0)
+private val DarkSquareColor = Color(0xFF739552)
+private val AttackedLightColor = LightSquareColor
+private val AttackedDarkColor = DarkSquareColor
 private val ConflictColor = Color(0xFFE53935)
 private val QueenColor = Color(0xFF1B1B1B)
 
@@ -84,6 +87,12 @@ private fun Cell(
                 fontSize = queenSize,
                 color = if (cell.isConflicting) Color.White else QueenColor,
                 textAlign = TextAlign.Center
+            )
+        } else if (cell.isAttacked) {
+            Icon(
+                imageVector = Icons.Outlined.Close,
+                contentDescription = "Attacked",
+                tint = Color.Black.copy(alpha = 0.2f),
             )
         }
     }
