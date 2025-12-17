@@ -107,4 +107,15 @@ object NQueensLogic {
             elapsedTimeMs = elapsedTimeMs
         )
     }
+
+    fun getHint(): Position {
+        // TODO not implemented yet!
+        return Position(0, 0)
+    }
+
+    fun getSolution(): Set<Position> {
+        // TODO not implemented yet!
+        // Evaluate the closest solution?
+        return emptySet()
+    }
 }

@@ -14,7 +14,7 @@ class GameViewModel : ViewModel() {
         val boardSize: Int = 8,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
-        val elapsedTimeMs: Long = 0
+        val elapsedTimeMs: Map<Int, Long> = emptyMap(),
     )
 
     private val _gameState = MutableStateFlow(GameState())
@@ -68,7 +68,7 @@ class GameViewModel : ViewModel() {
             boardSize = state.boardSize,
             queens = state.queens,
             selectedQueen = state.selectedQueen,
-            elapsedTimeMs = state.elapsedTimeMs
+            elapsedTimeMs = state.elapsedTimeMs.getOrDefault(state.boardSize, 0L)
         )
     }
 }

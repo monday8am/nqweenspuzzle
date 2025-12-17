@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
@@ -86,4 +87,21 @@ private fun Cell(
             )
         }
     }
+}
+
+@Preview(showBackground = true, name = "8x8 Board - In Progress")
+@Composable
+private fun GameBoardPreviewInProgress() {
+    val inProgressState = BoardRenderState(
+        boardSize = 8,
+        cells = cells,
+        queensRemaining = 5, // 8 - 3
+        isSolved = false,
+        elapsedTimeMs = 45000L // e.g., 45 seconds
+    )
+
+    GameBoard(
+        state = inProgressState,
+        onCellTap = { _ -> },
+    )
 }
