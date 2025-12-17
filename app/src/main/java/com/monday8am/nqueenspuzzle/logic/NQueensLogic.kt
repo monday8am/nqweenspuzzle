@@ -104,7 +104,7 @@ object NQueensLogic {
             cells = cells,
             queensRemaining = boardSize - queens.size,
             isSolved = isSolved(queens, boardSize),
-            elapsedTimeMs = System.currentTimeMillis() - elapsedTimeMs,
+            calculationTime = System.currentTimeMillis() - elapsedTimeMs,
         )
     }
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -38,20 +39,28 @@ fun GameBoard(
     onCellTap: (Position) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(state.boardSize),
-        modifier = modifier
-            .aspectRatio(1f)
-            .border(2.dp, Color.Black)
-    ) {
-        items(state.cells) { cell ->
-            Cell(
-                cell = cell,
-                boardSize = state.boardSize,
-                onClick = { onCellTap(cell.position) }
-            )
+    Column(modifier = modifier) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(state.boardSize),
+            modifier = Modifier
+                .aspectRatio(1f)
+                .border(2.dp, Color.Black)
+        ) {
+            items(state.cells) { cell ->
+                Cell(
+                    cell = cell,
+                    boardSize = state.boardSize,
+                    onClick = { onCellTap(cell.position) }
+                )
+            }
         }
+        Text(
+            text ="Calculation time: ${state.calculationTime}ms",
+            fontSize = 12.sp,
+            color = Color.DarkGray,
+        )
     }
+
 }
 
 @Composable
@@ -106,7 +115,7 @@ private fun GameBoardPreviewInProgress() {
         cells = cells,
         queensRemaining = 5, // 8 - 3
         isSolved = false,
-        elapsedTimeMs = 45000L // e.g., 45 seconds
+        calculationTime = 45L // e.g., 45 seconds
     )
 
     GameBoard(

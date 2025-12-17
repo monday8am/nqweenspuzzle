@@ -5,5 +5,5 @@ data class BoardRenderState(
     val cells: List<CellState>,
     val queensRemaining: Int,
     val isSolved: Boolean,
-    val elapsedTimeMs: Long
+    val calculationTime: Long
 )
