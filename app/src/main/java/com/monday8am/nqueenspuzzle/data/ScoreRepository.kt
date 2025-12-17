@@ -3,10 +3,13 @@ package com.monday8am.nqueenspuzzle.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 // Extension property for DataStore
@@ -32,31 +35,55 @@ class ScoreRepository(context: Context) {
     }
 
     /**
-     * Add a new score entry
-     * PLACEHOLDER - Implementation deferred
+     * Add a new score entry with FIFO strategy
+     * - Keeps max 10 records per board size
+     * - If there are more than 10, removes oldest ones (FIFO)
      */
     suspend fun addScore(boardSize: Int, elapsedSeconds: Long) {
-        // TODO: Implement in next phase
-        // 1. Get next ID
-        // 2. Create ScoreEntry with current timestamp
-        // 3. Read existing scores for board size
-        // 4. Append new score
-        // 5. Serialize to JSON
-        // 6. Write back to DataStore
+        dataStore.edit { preferences ->
+            val key = stringPreferencesKey("scores_boardSize_$boardSize")
+            val nextIdKey = intPreferencesKey("next_score_id")
+
+            // Get next ID
+            val nextId = preferences[nextIdKey] ?: 1
+            preferences[nextIdKey] = nextId + 1
+
+            // Read existing scores
+            val jsonString = preferences[key] ?: "[]"
+            val existingScores = try {
+                Json.decodeFromString<List<ScoreEntry>>(jsonString)
+            } catch (_: Exception) {
+                emptyList()
+            }
+
+            // Create new score entry
+            val newScore = ScoreEntry(
+                id = nextId,
+                boardSize = boardSize,
+                elapsedSeconds = elapsedSeconds,
+                timestamp = System.currentTimeMillis()
+            )
+
+            // Add new score and apply FIFO strategy
+            val allScores = existingScores + newScore
+
+            // Sort by timestamp (oldest first)
+            val sortedByTime = allScores.sortedBy { it.timestamp }
+            val finalScores = when {
+                sortedByTime.size > 10 -> sortedByTime.takeLast(10)
+                else -> sortedByTime
+            }
+
+            // Save back to DataStore
+            val updatedJson = Json.encodeToString(finalScores)
+            preferences[key] = updatedJson
+        }
     }
 
-    /**
-     * Delete a specific score entry
-     * PLACEHOLDER - For future use
-     */
     suspend fun deleteScore(boardSize: Int, scoreId: Int) {
         // TODO: Implement if needed
     }
 
-    /**
-     * Clear all scores for a board size
-     * PLACEHOLDER - For future use
-     */
     suspend fun clearScoresForBoardSize(boardSize: Int) {
         // TODO: Implement if needed
     }

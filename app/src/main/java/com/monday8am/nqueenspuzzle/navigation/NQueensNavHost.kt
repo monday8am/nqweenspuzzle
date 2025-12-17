@@ -6,6 +6,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,6 +19,7 @@ import com.monday8am.nqueenspuzzle.GameViewModel
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
 import com.monday8am.nqueenspuzzle.ui.GameScreen
 import com.monday8am.nqueenspuzzle.ui.ResultsScreen
+import com.monday8am.nqueenspuzzle.ui.ResultsViewModel
 
 @Composable
 fun NQueensNavHost(
@@ -46,10 +50,22 @@ fun NQueensNavHost(
             composable<ResultsRoute> { backStackEntry ->
                 val resultsRoute = backStackEntry.toRoute<ResultsRoute>()
 
+                // Create ViewModel factory with parameters
+                val resultsViewModel: ResultsViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return ResultsViewModel(
+                                scoreRepository = scoreRepository,
+                                boardSize = resultsRoute.boardSize,
+                                elapsedSeconds = resultsRoute.elapsedSeconds
+                            ) as T
+                        }
+                    }
+                )
+
                 ResultsScreen(
-                    boardSize = resultsRoute.boardSize,
-                    elapsedSeconds = resultsRoute.elapsedSeconds,
-                    scoreRepository = scoreRepository,
+                    viewModel = resultsViewModel,
                     onNewGameClick = {
                         viewModel.dispatch(GameAction.Reset)
                         navController.popBackStack()

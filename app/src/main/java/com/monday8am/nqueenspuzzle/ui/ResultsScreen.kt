@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.monday8am.nqueenspuzzle.data.ScoreEntry
-import com.monday8am.nqueenspuzzle.data.ScoreRepository
 import com.monday8am.nqueenspuzzle.ui.theme.NQueensPuzzleTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,17 +31,15 @@ import java.util.Locale
 
 @Composable
 fun ResultsScreen(
-    boardSize: Int,
-    elapsedSeconds: Long,
-    scoreRepository: ScoreRepository,
+    viewModel: ResultsViewModel,
     onNewGameClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val scores by scoreRepository.getScoresForBoardSize(boardSize).collectAsState(initial = emptyList())
+    val scores by viewModel.scores.collectAsState()
 
     ResultsScreenContent(
-        boardSize = boardSize,
-        elapsedSeconds = elapsedSeconds,
+        boardSize = viewModel.boardSize,
+        elapsedSeconds = viewModel.elapsedSeconds,
         previousScores = scores,
         onNewGameClick = onNewGameClick,
         modifier = modifier
