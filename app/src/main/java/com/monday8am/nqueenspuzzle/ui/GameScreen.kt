@@ -1,14 +1,13 @@
 package com.monday8am.nqueenspuzzle.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,6 +49,36 @@ private fun GameScreenContent(
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    if (isLandscape) {
+        LandscapeLayout(
+            state = state,
+            onBoardSizeSelected = onBoardSizeSelected,
+            onCellTap = onCellTap,
+            onResetClick = onResetClick,
+            modifier = modifier
+        )
+    } else {
+        PortraitLayout(
+            state = state,
+            onBoardSizeSelected = onBoardSizeSelected,
+            onCellTap = onCellTap,
+            onResetClick = onResetClick,
+            modifier = modifier
+        )
+    }
+}
+
+@Composable
+private fun PortraitLayout(
+    state: BoardRenderState,
+    onBoardSizeSelected: (Int) -> Unit,
+    onCellTap: (Position) -> Unit,
+    onResetClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         verticalArrangement = spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -62,13 +92,6 @@ private fun GameScreenContent(
             fontWeight = FontWeight.Bold
         )
 
-        // Board size selector
-        BoardSizeSelector(
-            boardSize = state.boardSize,
-            onBoardSizeSelected = onBoardSizeSelected
-        )
-
-        // Game board
         GameBoard(
             state = state,
             onCellTap = onCellTap,
@@ -77,30 +100,81 @@ private fun GameScreenContent(
                 .weight(1f, fill = false)
         )
 
-        // Victory message
-        if (state.isSolved) {
-            Text(
-                text = "Congratulations! Puzzle Solved!",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        ControlPanel(
+            boardSize = state.boardSize,
+            isSolved = state.isSolved,
+            onBoardSizeSelected = onBoardSizeSelected,
+            onResetClick = onResetClick,
+        )
+    }
+}
 
-        // Reset button
-        Button(
-            onClick = onResetClick,
-            modifier = Modifier.width(120.dp)
+@Composable
+private fun LandscapeLayout(
+    state: BoardRenderState,
+    onBoardSizeSelected: (Int) -> Unit,
+    onCellTap: (Position) -> Unit,
+    onResetClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        verticalArrangement = spacedBy(12.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "N-Queens Puzzle",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.Start)
+        )
+
+        Row(
+            horizontalArrangement = spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("Reset")
+            // Left section: GameBoard
+            GameBoard(
+                state = state,
+                onCellTap = onCellTap,
+                modifier = Modifier.fillMaxHeight()
+            )
+
+            // Right section: Controls
+            ControlPanel(
+                boardSize = state.boardSize,
+                isSolved = state.isSolved,
+                onBoardSizeSelected = onBoardSizeSelected,
+                onResetClick = onResetClick,
+                modifier = Modifier
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Portrait Preview")
 @Composable
 private fun GameScreenContentPreview() {
+    GameScreenContent(
+        state = NQueensLogic.buildBoardRenderState(
+            boardSize = 8,
+            queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
+            selectedQueen = Position(0, 0),
+        ),
+        onBoardSizeSelected = { },
+        onCellTap = { },
+        onResetClick = { },
+    )
+}
+
+@Preview(
+    showBackground = true,
+    name = "Landscape Preview",
+    device = "spec:width=800dp,height=360dp,orientation=landscape"
+)
+@Composable
+private fun GameScreenContentLandscapePreview() {
     GameScreenContent(
         state = NQueensLogic.buildBoardRenderState(
             boardSize = 8,
