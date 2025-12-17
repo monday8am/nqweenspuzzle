@@ -1,9 +1,7 @@
 package com.monday8am.nqueenspuzzle.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,9 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,7 +24,6 @@ import com.monday8am.nqueenspuzzle.GameViewModel
 import com.monday8am.nqueenspuzzle.logic.NQueensLogic
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.Position
-import kotlin.math.roundToInt
 
 @Composable
 fun GameScreen(
@@ -68,21 +63,9 @@ private fun GameScreenContent(
         )
 
         // Board size selector
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            val boardSizeLabel = "Board size: ${state.boardSize}x${state.boardSize}"
-            Text(boardSizeLabel)
-            Slider(
-                value = state.boardSize.toFloat(),
-                onValueChange = { onBoardSizeSelected(it.roundToInt()) },
-                valueRange = 4f..12f,
-                steps = 7 // (16 - 4) - 1
-            )
-        }
-
-        // Queens remaining
-        Text(
-            text = "Queens remaining: ${state.queensRemaining}",
-            style = MaterialTheme.typography.titleMedium
+        BoardSizeSelector(
+            boardSize = state.boardSize,
+            onBoardSizeSelected = onBoardSizeSelected
         )
 
         // Game board
