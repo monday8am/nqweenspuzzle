@@ -24,7 +24,6 @@ internal fun ControlPanel(
     isSolved: Boolean,
     onBoardSizeSelected: (Int) -> Unit,
     onResetClick: () -> Unit,
-    onShowHint: () -> Unit,
     verticalArrangement: Arrangement.Vertical = spacedBy(16.dp),
     modifier: Modifier = Modifier,
 ) {
@@ -60,12 +59,6 @@ internal fun ControlPanel(
                 Text("Reset")
             }
             Button(
-                onClick = onShowHint,
-                modifier = Modifier.width(120.dp),
-            ) {
-                Text("Show Hint")
-            }
-            Button(
                 onClick = onResetClick,
                 modifier = Modifier.width(120.dp),
             ) {
@@ -84,7 +77,6 @@ private fun ControlPanelPreview() {
             isSolved = false,
             onBoardSizeSelected = {},
             onResetClick = {},
-            onShowHint = {},
             modifier = Modifier.padding(16.dp),
         )
     }
@@ -99,7 +91,6 @@ private fun ControlPanelSolvedPreview() {
             isSolved = true,
             onBoardSizeSelected = {},
             onResetClick = {},
-            onShowHint = {},
             modifier = Modifier.padding(16.dp),
         )
     }

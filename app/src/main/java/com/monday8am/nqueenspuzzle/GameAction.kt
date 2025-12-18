@@ -12,6 +12,4 @@ sealed class GameAction {
     ) : GameAction()
 
     data object Reset : GameAction()
-
-    data object ShowHint : GameAction()
 }
