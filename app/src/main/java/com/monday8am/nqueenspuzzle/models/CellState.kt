@@ -7,4 +7,9 @@ data class CellState(
     val isAttacked: Boolean,
     val isLightSquare: Boolean,
     val isSelected: Boolean,
-)
+) {
+    val isEmptyAndAttacked = !hasQueen && isAttacked
+    val hasQueenAttacked = hasQueen && isConflicting && !isSelected
+    val hasQueenAttacking = isConflicting && isSelected
+}
+

@@ -8,8 +8,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
 
-private const val MIN_SIZE = 4f
-private const val MAX_SIZE = 12f
+private const val BOARD_MIN_SIZE = 4f
+private const val BOARD_MAX_SIZE = 12f
 
 @Composable
 internal fun BoardSizeSelector(
@@ -23,8 +23,8 @@ internal fun BoardSizeSelector(
         Slider(
             value = boardSize.toFloat(),
             onValueChange = { onBoardSizeSelected(it.roundToInt()) },
-            valueRange = MIN_SIZE..MAX_SIZE,
-            steps = (MAX_SIZE - MIN_SIZE).toInt() - 1,
+            valueRange = BOARD_MIN_SIZE..BOARD_MAX_SIZE,
+            steps = (BOARD_MAX_SIZE - BOARD_MIN_SIZE).toInt() - 1,
         )
     }
 }

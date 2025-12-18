@@ -28,8 +28,6 @@ import com.monday8am.nqueenspuzzle.models.Position
 
 private val LightSquareColor = Color(0xFFebecd0)
 private val DarkSquareColor = Color(0xFF739552)
-private val AttackedLightColor = LightSquareColor
-private val AttackedDarkColor = DarkSquareColor
 private val ConflictColor = Color(0xFFE53935)
 private val QueenColor = Color(0xFF1B1B1B)
 private val markerColor = Color.Black.copy(alpha = 0.2f)
@@ -64,7 +62,7 @@ fun GameBoard(
             }
         }
         Text(
-            text ="Calculation time: ${state.processingTime}ms",
+            text = "Calculation time: ${state.processingTime}ms",
             fontSize = 12.sp,
             color = Color.DarkGray,
         )
@@ -79,24 +77,17 @@ private fun Cell(
     onClick: () -> Unit
 ) {
     val backgroundColor = when {
-        cell.isConflicting && cell.isSelected-> ConflictColor
-        cell.isAttacked && cell.isLightSquare -> AttackedLightColor
-        cell.isAttacked && !cell.isLightSquare -> AttackedDarkColor
+        cell.hasQueenAttacking -> ConflictColor
         cell.isLightSquare -> LightSquareColor
         else -> DarkSquareColor
     }
-
-    // Determine if we need to draw the ring (attacked marker)
-    val showAttackedMarker = !cell.hasQueen && cell.isAttacked
-    val showAttackedQueenMarker = cell.hasQueen && cell.isConflicting && !cell.isSelected
-
 
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .drawBehind {
                 drawRect(color = backgroundColor)
-                if (showAttackedQueenMarker) {
+                if (cell.hasQueenAttacked) {
                     val strokeWidth = size.width * 0.1f
                     val radius = (size.minDimension - strokeWidth) / 2
                     // We shrink the radius slightly so the stroke doesn't get clipped
@@ -105,7 +96,7 @@ private fun Cell(
                         radius = radius * 0.85f,
                         style = Stroke(width = strokeWidth)
                     )
-                } else if (showAttackedMarker) {
+                } else if (cell.isEmptyAndAttacked) {
                     drawCircle(
                         color = markerColor,
                         radius = size.minDimension * 0.15f,
@@ -116,7 +107,6 @@ private fun Cell(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        // 3. Draw Queen (Text) only if present
         if (cell.hasQueen) {
             val queenSize = when {
                 boardSize <= 4 -> 32.sp
@@ -126,7 +116,7 @@ private fun Cell(
             Text(
                 text = "\u265B",
                 fontSize = queenSize,
-                color = if (cell.isConflicting && cell.isSelected) Color.White else QueenColor,
+                color = if (cell.hasQueenAttacking) Color.White else QueenColor,
                 textAlign = TextAlign.Center
             )
         }
