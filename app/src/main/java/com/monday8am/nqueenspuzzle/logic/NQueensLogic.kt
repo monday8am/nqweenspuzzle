@@ -93,7 +93,8 @@ object NQueensLogic {
                         hasQueen = hasQueen,
                         isConflicting = isConflicting,
                         isAttacked = isAttacked,
-                        isLightSquare = isLightSquare
+                        isLightSquare = isLightSquare,
+                        isSelected = position == selectedQueen,
                     )
                 )
             }
@@ -104,7 +105,7 @@ object NQueensLogic {
             cells = cells,
             queensRemaining = boardSize - queens.size,
             isSolved = isSolved(queens, boardSize),
-            elapsedTimeMs = System.currentTimeMillis() - elapsedTimeMs,
+            processingTime = System.currentTimeMillis() - elapsedTimeMs,
         )
     }
 
