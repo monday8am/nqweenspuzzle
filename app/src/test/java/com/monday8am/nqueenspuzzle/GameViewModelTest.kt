@@ -234,5 +234,4 @@ class GameViewModelTest {
         val state = viewModel.renderState.value
         assertFalse(state.isSolved)
     }
-
 }

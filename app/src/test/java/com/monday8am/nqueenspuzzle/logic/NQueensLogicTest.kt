@@ -429,5 +429,4 @@ class NQueensLogicTest {
             )
         assertFalse(state.isSolved)
     }
-
 }
