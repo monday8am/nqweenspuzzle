@@ -31,9 +31,8 @@ internal fun ControlPanel(
     Column(
         verticalArrangement = verticalArrangement,
         horizontalAlignment = Alignment.Start,
-        modifier = modifier
+        modifier = modifier,
     ) {
-
         if (isSolved) {
             Text(
                 text = "Congratulations! Puzzle Solved!",
@@ -47,35 +46,34 @@ internal fun ControlPanel(
 
         BoardSizeSelector(
             boardSize = boardSize,
-            onBoardSizeSelected = onBoardSizeSelected
+            onBoardSizeSelected = onBoardSizeSelected,
         )
 
         Row(
             horizontalArrangement = spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Button(
                 onClick = onResetClick,
-                modifier = Modifier.width(120.dp)
+                modifier = Modifier.width(120.dp),
             ) {
                 Text("Reset")
             }
             Button(
                 onClick = onShowHint,
-                modifier = Modifier.width(120.dp)
+                modifier = Modifier.width(120.dp),
             ) {
                 Text("Show Hint")
             }
             Button(
                 onClick = onResetClick,
-                modifier = Modifier.width(120.dp)
+                modifier = Modifier.width(120.dp),
             ) {
                 Text("Theme")
             }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -87,7 +85,7 @@ private fun ControlPanelPreview() {
             onBoardSizeSelected = {},
             onResetClick = {},
             onShowHint = {},
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -102,7 +100,7 @@ private fun ControlPanelSolvedPreview() {
             onBoardSizeSelected = {},
             onResetClick = {},
             onShowHint = {},
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         )
     }
 }

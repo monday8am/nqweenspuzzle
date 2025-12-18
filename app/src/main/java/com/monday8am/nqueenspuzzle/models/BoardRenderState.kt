@@ -8,5 +8,5 @@ data class BoardRenderState(
     val queensRemaining: Int,
     val isSolved: Boolean,
     @param:VisibleForTesting
-    val processingTime: Long
+    val processingTime: Long,
 )

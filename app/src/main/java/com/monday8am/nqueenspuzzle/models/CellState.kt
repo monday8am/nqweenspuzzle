@@ -13,4 +13,3 @@ data class CellState(
     val hasQueenAttacked = hasQueen && isConflicting && !isSelected
     val hasQueenAttacking = isConflicting && isSelected
 }
-

@@ -6,7 +6,6 @@ import org.junit.Before
 import org.junit.Test
 
 class GameViewModelTest {
-
     private lateinit var viewModel: GameViewModel
 
     @Before
@@ -80,12 +79,20 @@ class GameViewModelTest {
         viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Place first queen (selected)
 
         val state1 = viewModel.renderState.value
-        val attacked1 = state1.cells.filter { it.isAttacked }.map { it.position }.toSet()
+        val attacked1 =
+            state1.cells
+                .filter { it.isAttacked }
+                .map { it.position }
+                .toSet()
 
         viewModel.dispatch(GameAction.TapCell(Position(7, 7))) // Place second queen (now selected)
 
         val state2 = viewModel.renderState.value
-        val attacked2 = state2.cells.filter { it.isAttacked }.map { it.position }.toSet()
+        val attacked2 =
+            state2.cells
+                .filter { it.isAttacked }
+                .map { it.position }
+                .toSet()
 
         assertNotEquals(attacked1, attacked2)
     }

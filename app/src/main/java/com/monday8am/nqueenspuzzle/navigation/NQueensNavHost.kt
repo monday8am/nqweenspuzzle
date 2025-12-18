@@ -25,7 +25,7 @@ import com.monday8am.nqueenspuzzle.ui.ResultsViewModel
 fun NQueensNavHost(
     viewModel: GameViewModel,
     scoreRepository: ScoreRepository,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
 ) {
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
@@ -41,7 +41,7 @@ fun NQueensNavHost(
         NavHost(
             navController = navController,
             startDestination = GameRoute,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
         ) {
             composable<GameRoute> {
                 GameScreen(viewModel = viewModel)
@@ -51,25 +51,26 @@ fun NQueensNavHost(
                 val resultsRoute = backStackEntry.toRoute<ResultsRoute>()
 
                 // Create ViewModel factory with parameters
-                val resultsViewModel: ResultsViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        @Suppress("UNCHECKED_CAST")
-                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            return ResultsViewModel(
-                                scoreRepository = scoreRepository,
-                                boardSize = resultsRoute.boardSize,
-                                elapsedSeconds = resultsRoute.elapsedSeconds
-                            ) as T
-                        }
-                    }
-                )
+                val resultsViewModel: ResultsViewModel =
+                    viewModel(
+                        factory =
+                            object : ViewModelProvider.Factory {
+                                @Suppress("UNCHECKED_CAST")
+                                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                                    ResultsViewModel(
+                                        scoreRepository = scoreRepository,
+                                        boardSize = resultsRoute.boardSize,
+                                        elapsedSeconds = resultsRoute.elapsedSeconds,
+                                    ) as T
+                            },
+                    )
 
                 ResultsScreen(
                     viewModel = resultsViewModel,
                     onNewGameClick = {
                         viewModel.dispatch(GameAction.Reset)
                         navController.popBackStack()
-                    }
+                    },
                 )
             }
         }

@@ -10,7 +10,6 @@ import com.monday8am.nqueenspuzzle.navigation.NQueensNavHost
 import com.monday8am.nqueenspuzzle.ui.theme.NQueensPuzzleTheme
 
 class MainActivity : ComponentActivity() {
-
     private val viewModel: GameViewModel by viewModels()
     private lateinit var scoreRepository: ScoreRepository
 
@@ -22,7 +21,7 @@ class MainActivity : ComponentActivity() {
             NQueensPuzzleTheme {
                 NQueensNavHost(
                     viewModel = viewModel,
-                    scoreRepository = scoreRepository
+                    scoreRepository = scoreRepository,
                 )
             }
         }

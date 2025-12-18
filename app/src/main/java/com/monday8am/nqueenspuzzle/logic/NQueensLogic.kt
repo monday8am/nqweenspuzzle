@@ -6,8 +6,10 @@ import com.monday8am.nqueenspuzzle.models.Position
 import kotlin.math.abs
 
 object NQueensLogic {
-
-    fun hasConflict(a: Position, b: Position): Boolean {
+    fun hasConflict(
+        a: Position,
+        b: Position,
+    ): Boolean {
         if (a == b) return false
         val sameRow = a.row == b.row
         val sameCol = a.col == b.col
@@ -29,7 +31,10 @@ object NQueensLogic {
         return conflicting
     }
 
-    fun getAttackedCells(queen: Position, boardSize: Int): Set<Position> {
+    fun getAttackedCells(
+        queen: Position,
+        boardSize: Int,
+    ): Set<Position> {
         val attacked = mutableSetOf<Position>()
 
         for (i in 0 until boardSize) {
@@ -64,7 +69,10 @@ object NQueensLogic {
         return attacked
     }
 
-    fun isSolved(queens: Set<Position>, boardSize: Int): Boolean {
+    fun isSolved(
+        queens: Set<Position>,
+        boardSize: Int,
+    ): Boolean {
         if (queens.size != boardSize) return false
         return findConflictingQueens(queens).isEmpty()
     }
@@ -79,7 +87,6 @@ object NQueensLogic {
         val attackedCells = selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
         val hintPosition = if (showHint) getHint(queens, boardSize) else null
         val elapsedTimeMs = System.currentTimeMillis()
-
 
         val cells = mutableListOf<CellState>()
         for (row in 0 until boardSize) {
@@ -100,7 +107,7 @@ object NQueensLogic {
                         isHint = isHint,
                         isLightSquare = isLightSquare,
                         isSelected = position == selectedQueen,
-                    )
+                    ),
                 )
             }
         }
@@ -114,7 +121,10 @@ object NQueensLogic {
         )
     }
 
-    fun getHint(queens: Set<Position>, boardSize: Int): Position? {
+    fun getHint(
+        queens: Set<Position>,
+        boardSize: Int,
+    ): Position? {
         for (row in 0 until boardSize) {
             for (col in 0 until boardSize) {
                 val pos = Position(row, col)

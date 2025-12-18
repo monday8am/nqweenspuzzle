@@ -38,27 +38,28 @@ private val attackedQueenColor = ConflictColor.copy(alpha = 0.8f)
 fun GameBoard(
     state: BoardRenderState,
     onCellTap: (Position) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         verticalArrangement = spacedBy(4.dp),
-        modifier = modifier
+        modifier = modifier,
     ) {
         Text(
             text = "\u265B Queens remaining: ${state.queensRemaining}",
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(state.boardSize),
-            modifier = Modifier
-                .aspectRatio(1f)
-                .border(2.dp, Color.Black)
+            modifier =
+                Modifier
+                    .aspectRatio(1f)
+                    .border(2.dp, Color.Black),
         ) {
             items(state.cells) { cell ->
                 Cell(
                     cell = cell,
                     boardSize = state.boardSize,
-                    onClick = { onCellTap(cell.position) }
+                    onClick = { onCellTap(cell.position) },
                 )
             }
         }
@@ -68,74 +69,75 @@ fun GameBoard(
             color = Color.DarkGray,
         )
     }
-
 }
 
 @Composable
 private fun Cell(
     cell: CellState,
     boardSize: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val backgroundColor = when {
-        cell.isHint -> HintColor
-        cell.hasQueenAttacking -> ConflictColor
-        cell.isLightSquare -> LightSquareColor
-        else -> DarkSquareColor
-    }
+    val backgroundColor =
+        when {
+            cell.isHint -> HintColor
+            cell.hasQueenAttacking -> ConflictColor
+            cell.isLightSquare -> LightSquareColor
+            else -> DarkSquareColor
+        }
 
     Box(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .drawBehind {
-                drawRect(color = backgroundColor)
-                if (cell.hasQueenAttacked) {
-                    val strokeWidth = size.width * 0.1f
-                    val radius = (size.minDimension - strokeWidth) / 2
-                    // We shrink the radius slightly so the stroke doesn't get clipped
-                    drawCircle(
-                        color = attackedQueenColor,
-                        radius = radius * 0.85f,
-                        style = Stroke(width = strokeWidth)
-                    )
-                } else if (cell.isEmptyAndAttacked) {
-                    drawCircle(
-                        color = markerColor,
-                        radius = size.minDimension * 0.15f,
-                        style = Fill,
-                    )
-                }
-            }
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .aspectRatio(1f)
+                .drawBehind {
+                    drawRect(color = backgroundColor)
+                    if (cell.hasQueenAttacked) {
+                        val strokeWidth = size.width * 0.1f
+                        val radius = (size.minDimension - strokeWidth) / 2
+                        // We shrink the radius slightly so the stroke doesn't get clipped
+                        drawCircle(
+                            color = attackedQueenColor,
+                            radius = radius * 0.85f,
+                            style = Stroke(width = strokeWidth),
+                        )
+                    } else if (cell.isEmptyAndAttacked) {
+                        drawCircle(
+                            color = markerColor,
+                            radius = size.minDimension * 0.15f,
+                            style = Fill,
+                        )
+                    }
+                }.clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         if (cell.hasQueen) {
-            val queenSize = when {
-                boardSize <= 4 -> 32.sp
-                boardSize <= 6 -> 28.sp
-                else -> 24.sp
-            }
+            val queenSize =
+                when {
+                    boardSize <= 4 -> 32.sp
+                    boardSize <= 6 -> 28.sp
+                    else -> 24.sp
+                }
             Text(
                 text = "\u265B",
                 fontSize = queenSize,
                 color = if (cell.hasQueenAttacking) Color.White else QueenColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }
 }
 
-
 @Preview(showBackground = true, name = "8x8 Board - In Progress")
 @Composable
 private fun GameBoardPreviewInProgress() {
-    val inProgressState = BoardRenderState(
-        boardSize = 8,
-        cells = cells,
-        queensRemaining = 5,
-        isSolved = false,
-        processingTime = 45L
-    )
+    val inProgressState =
+        BoardRenderState(
+            boardSize = 8,
+            cells = cells,
+            queensRemaining = 5,
+            isSolved = false,
+            processingTime = 45L,
+        )
 
     GameBoard(
         state = inProgressState,

@@ -33,7 +33,7 @@ import java.util.Locale
 fun ResultsScreen(
     viewModel: ResultsViewModel,
     onNewGameClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val scores by viewModel.scores.collectAsState()
 
@@ -42,7 +42,7 @@ fun ResultsScreen(
         elapsedSeconds = viewModel.elapsedSeconds,
         previousScores = scores,
         onNewGameClick = onNewGameClick,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -52,43 +52,45 @@ private fun ResultsScreenContent(
     elapsedSeconds: Long,
     previousScores: List<ScoreEntry>,
     onNewGameClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         // Title
         Text(
             text = "Puzzle Solved!",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
 
         // Current completion card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     text = "Board Size: ${boardSize}x$boardSize",
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
                     text = "Time: ${formatTime(elapsedSeconds)}",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }
@@ -98,14 +100,15 @@ private fun ResultsScreenContent(
             Text(
                 text = "Previous Times (${boardSize}x$boardSize)",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(previousScores.take(10)) { score ->
                     ScoreItem(score = score)
@@ -118,13 +121,14 @@ private fun ResultsScreenContent(
         // New game button
         Button(
             onClick = onNewGameClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
         ) {
             Text(
                 text = "New Game",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
         }
     }
@@ -133,44 +137,45 @@ private fun ResultsScreenContent(
 @Composable
 private fun ScoreItem(
     score: ScoreEntry,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
+            modifier =
+                Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = formatTime(score.elapsedSeconds),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Text(
                 text = formatDate(score.timestamp),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
 }
 
-private fun formatTime(seconds: Long): String {
-    return if (seconds < 60) {
+private fun formatTime(seconds: Long): String =
+    if (seconds < 60) {
         "$seconds seconds"
     } else {
         val minutes = seconds / 60
         val secs = seconds % 60
         "$minutes:${secs.toString().padStart(2, '0')}"
     }
-}
 
 private fun formatDate(timestamp: Long): String {
     val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
@@ -184,12 +189,13 @@ private fun ResultsScreenPreview() {
         ResultsScreenContent(
             boardSize = 8,
             elapsedSeconds = 125,
-            previousScores = listOf(
-                ScoreEntry(1, 8, 100, System.currentTimeMillis()),
-                ScoreEntry(2, 8, 145, System.currentTimeMillis() - 86400000),
-                ScoreEntry(3, 8, 200, System.currentTimeMillis() - 172800000)
-            ),
-            onNewGameClick = {}
+            previousScores =
+                listOf(
+                    ScoreEntry(1, 8, 100, System.currentTimeMillis()),
+                    ScoreEntry(2, 8, 145, System.currentTimeMillis() - 86400000),
+                    ScoreEntry(3, 8, 200, System.currentTimeMillis() - 172800000),
+                ),
+            onNewGameClick = {},
         )
     }
 }

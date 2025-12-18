@@ -18,7 +18,7 @@ internal fun BoardSizeSelector(
 ) {
     // Board size selector
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        val boardSizeLabel = "Board size: ${boardSize}x${boardSize}"
+        val boardSizeLabel = "Board size: ${boardSize}x$boardSize"
         Text(boardSizeLabel)
         Slider(
             value = boardSize.toFloat(),
@@ -34,6 +34,6 @@ internal fun BoardSizeSelector(
 private fun BoardSizeSelectorPreview() {
     BoardSizeSelector(
         boardSize = 8,
-        onBoardSizeSelected = {}
+        onBoardSizeSelected = {},
     )
 }

@@ -5,7 +5,6 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NQueensLogicTest {
-
     // ==================== hasConflict tests ====================
 
     @Test
@@ -230,56 +229,60 @@ class NQueensLogicTest {
     @Test
     fun `isSolved returns false for correct count but with conflicts`() {
         // 4 queens on a 4x4 board, but all in same row
-        val queens = setOf(
-            Position(0, 0),
-            Position(0, 1),
-            Position(0, 2),
-            Position(0, 3)
-        )
+        val queens =
+            setOf(
+                Position(0, 0),
+                Position(0, 1),
+                Position(0, 2),
+                Position(0, 3),
+            )
         assertFalse(NQueensLogic.isSolved(queens, 4))
     }
 
     @Test
     fun `isSolved returns true for valid 4-queens solution`() {
         // Known valid 4-queens solution
-        val queens = setOf(
-            Position(0, 1),
-            Position(1, 3),
-            Position(2, 0),
-            Position(3, 2)
-        )
+        val queens =
+            setOf(
+                Position(0, 1),
+                Position(1, 3),
+                Position(2, 0),
+                Position(3, 2),
+            )
         assertTrue(NQueensLogic.isSolved(queens, 4))
     }
 
     @Test
     fun `isSolved returns true for valid 8-queens solution`() {
         // Known valid 8-queens solution
-        val queens = setOf(
-            Position(0, 0),
-            Position(1, 4),
-            Position(2, 7),
-            Position(3, 5),
-            Position(4, 2),
-            Position(5, 6),
-            Position(6, 1),
-            Position(7, 3)
-        )
+        val queens =
+            setOf(
+                Position(0, 0),
+                Position(1, 4),
+                Position(2, 7),
+                Position(3, 5),
+                Position(4, 2),
+                Position(5, 6),
+                Position(6, 1),
+                Position(7, 3),
+            )
         assertTrue(NQueensLogic.isSolved(queens, 8))
     }
 
     @Test
     fun `isSolved returns true for another valid 8-queens solution`() {
         // Another known valid 8-queens solution
-        val queens = setOf(
-            Position(0, 3),
-            Position(1, 1),
-            Position(2, 6),
-            Position(3, 2),
-            Position(4, 5),
-            Position(5, 7),
-            Position(6, 4),
-            Position(7, 0)
-        )
+        val queens =
+            setOf(
+                Position(0, 3),
+                Position(1, 1),
+                Position(2, 6),
+                Position(3, 2),
+                Position(4, 5),
+                Position(5, 7),
+                Position(6, 4),
+                Position(7, 0),
+            )
         assertTrue(NQueensLogic.isSolved(queens, 8))
     }
 
@@ -287,32 +290,35 @@ class NQueensLogicTest {
 
     @Test
     fun `buildBoardRenderState creates correct number of cells`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 8,
-            queens = emptySet(),
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 8,
+                queens = emptySet(),
+                selectedQueen = null,
+            )
         assertEquals(64, state.cells.size)
     }
 
     @Test
     fun `buildBoardRenderState creates correct number of cells for 4x4`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = emptySet(),
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = emptySet(),
+                selectedQueen = null,
+            )
         assertEquals(16, state.cells.size)
     }
 
     @Test
     fun `buildBoardRenderState marks queens correctly`() {
         val queens = setOf(Position(0, 0), Position(2, 3))
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = queens,
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = queens,
+                selectedQueen = null,
+            )
 
         val queenCells = state.cells.filter { it.hasQueen }
         assertEquals(2, queenCells.size)
@@ -326,11 +332,12 @@ class NQueensLogicTest {
         val q2 = Position(0, 3) // Same row - conflict
         val queens = setOf(q1, q2)
 
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = queens,
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = queens,
+                selectedQueen = null,
+            )
 
         val conflictingCells = state.cells.filter { it.isConflicting }
         assertEquals(2, conflictingCells.size)
@@ -339,11 +346,12 @@ class NQueensLogicTest {
     @Test
     fun `buildBoardRenderState marks attacked cells when queen selected`() {
         val queen = Position(0, 0)
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = setOf(queen),
-            selectedQueen = queen
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = setOf(queen),
+                selectedQueen = queen,
+            )
 
         val attackedCells = state.cells.filter { it.isAttacked }
         assertTrue(attackedCells.isNotEmpty())
@@ -353,11 +361,12 @@ class NQueensLogicTest {
 
     @Test
     fun `buildBoardRenderState does not mark attacked cells when no queen selected`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = setOf(Position(0, 0)),
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = setOf(Position(0, 0)),
+                selectedQueen = null,
+            )
 
         val attackedCells = state.cells.filter { it.isAttacked }
         assertTrue(attackedCells.isEmpty())
@@ -365,11 +374,12 @@ class NQueensLogicTest {
 
     @Test
     fun `buildBoardRenderState calculates light squares correctly`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = emptySet(),
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = emptySet(),
+                selectedQueen = null,
+            )
 
         // (0,0) should be light
         assertTrue(state.cells.find { it.position == Position(0, 0) }!!.isLightSquare)
@@ -381,38 +391,42 @@ class NQueensLogicTest {
 
     @Test
     fun `buildBoardRenderState calculates queensRemaining correctly`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 8,
-            queens = setOf(Position(0, 0), Position(1, 2), Position(2, 4)),
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 8,
+                queens = setOf(Position(0, 0), Position(1, 2), Position(2, 4)),
+                selectedQueen = null,
+            )
         assertEquals(5, state.queensRemaining)
     }
 
     @Test
     fun `buildBoardRenderState sets isSolved correctly for solved puzzle`() {
-        val solution = setOf(
-            Position(0, 1),
-            Position(1, 3),
-            Position(2, 0),
-            Position(3, 2)
-        )
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = solution,
-            selectedQueen = null
-        )
+        val solution =
+            setOf(
+                Position(0, 1),
+                Position(1, 3),
+                Position(2, 0),
+                Position(3, 2),
+            )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = solution,
+                selectedQueen = null,
+            )
         assertTrue(state.isSolved)
         assertEquals(0, state.queensRemaining)
     }
 
     @Test
     fun `buildBoardRenderState sets isSolved false for unsolved puzzle`() {
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = setOf(Position(0, 0)),
-            selectedQueen = null
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = setOf(Position(0, 0)),
+                selectedQueen = null,
+            )
         assertFalse(state.isSolved)
     }
 
@@ -441,12 +455,13 @@ class NQueensLogicTest {
     fun `getHint returns null when no valid position exists`() {
         // Fill a 4x4 board such that no valid position remains (impossible scenario for valid puzzle)
         // For testing, place 4 queens in same row (conflicts but fills positions)
-        val queens = setOf(
-            Position(0, 0),
-            Position(1, 1),
-            Position(2, 2),
-            Position(3, 3)
-        )
+        val queens =
+            setOf(
+                Position(0, 0),
+                Position(1, 1),
+                Position(2, 2),
+                Position(3, 3),
+            )
         val hint = NQueensLogic.getHint(queens, 4)
         // All positions are either occupied or attacked by diagonal queens
         assertNull(hint)
@@ -464,12 +479,13 @@ class NQueensLogicTest {
     @Test
     fun `buildBoardRenderState marks hint cell correctly`() {
         val hintPosition = Position(2, 2)
-        val state = NQueensLogic.buildBoardRenderState(
-            boardSize = 4,
-            queens = emptySet(),
-            selectedQueen = null,
-            hintPosition = hintPosition
-        )
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = emptySet(),
+                selectedQueen = null,
+                hintPosition = hintPosition,
+            )
 
         val hintCell = state.cells.find { it.position == hintPosition }
         assertNotNull(hintCell)

@@ -15,14 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class GameViewModel : ViewModel() {
-
     data class GameState(
         val boardSize: Int = 8,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
         val showHint: Boolean = false,
         val gameStartTime: Long? = null,
-        val gameEndTime: Long? = null
+        val gameEndTime: Long? = null,
     )
 
     private val _gameState = MutableStateFlow(GameState())
@@ -39,44 +38,61 @@ class GameViewModel : ViewModel() {
         _renderState.value = buildRenderState(newState)
     }
 
-    private fun reduce(state: GameState, action: GameAction): GameState {
-        return when (action) {
-            is GameAction.TapCell -> handleCellTap(state, action.position).copy(showHint = false)
-            is GameAction.SetBoardSize -> GameState(
-                boardSize = action.size,
-                showHint = false
-            )
-            is GameAction.Reset -> GameState(
-                boardSize = state.boardSize,
-                showHint = false
-            )
-            is GameAction.ShowHint -> state.copy(showHint = true)
-        }
-    }
+    private fun reduce(
+        state: GameState,
+        action: GameAction,
+    ): GameState =
+        when (action) {
+            is GameAction.TapCell -> {
+                handleCellTap(state, action.position).copy(showHint = false)
+            }
 
-    private fun handleCellTap(state: GameState, position: Position): GameState {
-        return when {
+            is GameAction.SetBoardSize -> {
+                GameState(
+                    boardSize = action.size,
+                    showHint = false,
+                )
+            }
+
+            is GameAction.Reset -> {
+                GameState(
+                    boardSize = state.boardSize,
+                    showHint = false,
+                )
+            }
+
+            is GameAction.ShowHint -> {
+                state.copy(showHint = true)
+            }
+        }
+
+    private fun handleCellTap(
+        state: GameState,
+        position: Position,
+    ): GameState =
+        when {
             // remove queen
             position in state.queens -> {
                 state.copy(
                     queens = state.queens - position,
-                    selectedQueen = null
+                    selectedQueen = null,
                 )
             }
 
             // add queen
             state.queens.size <= state.boardSize -> {
-                val newState= if (state.selectedQueen != null && NQueensLogic.findConflictingQueens(state.queens).isNotEmpty()) {
-                    state.copy(
-                        queens = state.queens - state.selectedQueen + position,
-                        selectedQueen = position
-                    )
-                } else {
-                    state.copy(
-                        queens = state.queens + position,
-                        selectedQueen = position
-                    )
-                }
+                val newState =
+                    if (state.selectedQueen != null && NQueensLogic.findConflictingQueens(state.queens).isNotEmpty()) {
+                        state.copy(
+                            queens = state.queens - state.selectedQueen + position,
+                            selectedQueen = position,
+                        )
+                    } else {
+                        state.copy(
+                            queens = state.queens + position,
+                            selectedQueen = position,
+                        )
+                    }
                 // Start timer on first queen placement
                 if (state.queens.isEmpty() && state.gameStartTime == null) {
                     newState.copy(gameStartTime = System.currentTimeMillis())
@@ -88,22 +104,24 @@ class GameViewModel : ViewModel() {
             state.selectedQueen != null -> {
                 state.copy(
                     queens = state.queens - state.selectedQueen + position,
-                    selectedQueen = position
+                    selectedQueen = position,
                 )
             }
 
             // Improbable case: Tapped on an empty cell, board is full, and no queen is selected.
-            else -> state // No change
+            else -> {
+                state
+            } // No change
         }
-    }
 
     private fun buildRenderState(state: GameState): BoardRenderState {
-        val renderState = NQueensLogic.buildBoardRenderState(
-            boardSize = state.boardSize,
-            queens = state.queens,
-            selectedQueen = state.selectedQueen,
-            showHint = state.showHint,
-        )
+        val renderState =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = state.boardSize,
+                queens = state.queens,
+                selectedQueen = state.selectedQueen,
+                showHint = state.showHint,
+            )
 
         // Capture end time and emit navigation event when puzzle is solved
         // TODO: deal with this side effect
@@ -116,11 +134,12 @@ class GameViewModel : ViewModel() {
                 viewModelScope.launch {
                     _navigationEvent.emit(
                         NavigationEvent.NavigateToResults(
-                            route = com.monday8am.nqueenspuzzle.navigation.ResultsRoute(
-                                boardSize = state.boardSize,
-                                elapsedSeconds = elapsedSeconds
-                            )
-                        )
+                            route =
+                                com.monday8am.nqueenspuzzle.navigation.ResultsRoute(
+                                    boardSize = state.boardSize,
+                                    elapsedSeconds = elapsedSeconds,
+                                ),
+                        ),
                     )
                 }
             }
@@ -132,6 +151,6 @@ class GameViewModel : ViewModel() {
     private fun getElapsedTimeSeconds(state: GameState): Long? {
         val start = state.gameStartTime ?: return null
         val end = state.gameEndTime ?: return null
-        return (end - start) / 1000  // Convert ms to seconds
+        return (end - start) / 1000 // Convert ms to seconds
     }
 }

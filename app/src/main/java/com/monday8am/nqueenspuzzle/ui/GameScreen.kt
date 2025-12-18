@@ -28,7 +28,7 @@ import com.monday8am.nqueenspuzzle.models.Position
 @Composable
 fun GameScreen(
     viewModel: GameViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val state by viewModel.renderState.collectAsState()
 
@@ -61,7 +61,7 @@ private fun GameScreenContent(
             onShowHint = onShowHint,
             onCellTap = onCellTap,
             onResetClick = onResetClick,
-            modifier = modifier
+            modifier = modifier,
         )
     } else {
         PortraitLayout(
@@ -70,7 +70,7 @@ private fun GameScreenContent(
             onCellTap = onCellTap,
             onResetClick = onResetClick,
             onShowHint = onShowHint,
-            modifier = modifier
+            modifier = modifier,
         )
     }
 }
@@ -87,22 +87,24 @@ private fun PortraitLayout(
     Column(
         verticalArrangement = spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(16.dp),
     ) {
         Text(
             text = "N-Queens Puzzle",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         GameBoard(
             state = state,
             onCellTap = onCellTap,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false),
         )
 
         ControlPanel(
@@ -126,26 +128,27 @@ private fun LandscapeLayout(
 ) {
     Column(
         verticalArrangement = spacedBy(12.dp),
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(16.dp),
     ) {
         Text(
             text = "N-Queens Puzzle",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
+            modifier = Modifier.align(Alignment.Start),
         )
 
         Row(
             horizontalArrangement = spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             // Left section: GameBoard
             GameBoard(
                 state = state,
                 onCellTap = onCellTap,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier.fillMaxHeight(),
             )
 
             // Right section: Controls
@@ -155,7 +158,7 @@ private fun LandscapeLayout(
                 onBoardSizeSelected = onBoardSizeSelected,
                 onResetClick = onResetClick,
                 onShowHint = onShowHint,
-                modifier = Modifier
+                modifier = Modifier,
             )
         }
     }
@@ -165,11 +168,12 @@ private fun LandscapeLayout(
 @Composable
 private fun GameScreenContentPreview() {
     GameScreenContent(
-        state = NQueensLogic.buildBoardRenderState(
-            boardSize = 8,
-            queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
-            selectedQueen = Position(0, 0),
-        ),
+        state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 8,
+                queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
+                selectedQueen = Position(0, 0),
+            ),
         onBoardSizeSelected = { },
         onCellTap = { },
         onShowHint = { },
@@ -180,16 +184,17 @@ private fun GameScreenContentPreview() {
 @Preview(
     showBackground = true,
     name = "Landscape Preview",
-    device = "spec:width=800dp,height=360dp,orientation=landscape"
+    device = "spec:width=800dp,height=360dp,orientation=landscape",
 )
 @Composable
 private fun GameScreenContentLandscapePreview() {
     GameScreenContent(
-        state = NQueensLogic.buildBoardRenderState(
-            boardSize = 8,
-            queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
-            selectedQueen = Position(0, 0),
-        ),
+        state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 8,
+                queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
+                selectedQueen = Position(0, 0),
+            ),
         onBoardSizeSelected = { },
         onCellTap = { },
         onShowHint = { },

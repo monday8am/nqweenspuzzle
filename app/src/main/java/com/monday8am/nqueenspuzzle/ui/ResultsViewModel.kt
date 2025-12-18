@@ -12,9 +12,8 @@ import kotlinx.coroutines.launch
 class ResultsViewModel(
     private val scoreRepository: ScoreRepository,
     val boardSize: Int,
-    val elapsedSeconds: Long
+    val elapsedSeconds: Long,
 ) : ViewModel() {
-
     private val _scores = MutableStateFlow<List<ScoreEntry>>(emptyList())
     val scores: StateFlow<List<ScoreEntry>> = _scores.asStateFlow()
 

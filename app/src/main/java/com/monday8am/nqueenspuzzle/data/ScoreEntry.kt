@@ -7,5 +7,5 @@ data class ScoreEntry(
     val id: Int,
     val boardSize: Int,
     val elapsedSeconds: Long,
-    val timestamp: Long
+    val timestamp: Long,
 )
