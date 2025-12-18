@@ -2,6 +2,7 @@ package com.monday8am.nqueenspuzzle.logic
 
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.CellState
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import kotlin.math.abs
 
@@ -81,10 +82,31 @@ object NQueensLogic {
         boardSize: Int,
         queens: Set<Position>,
         selectedQueen: Position?,
+        difficulty: Difficulty = Difficulty.EASY,
     ): BoardRenderState {
-        val conflictingQueens = findConflictingQueens(queens)
-        val attackedCells = selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
         val elapsedTimeMs = System.currentTimeMillis()
+
+        val conflictingQueens =
+            when (difficulty) {
+                Difficulty.EASY, Difficulty.MEDIUM -> {
+                    findConflictingQueens(queens)
+                }
+
+                Difficulty.HARD -> {
+                    // In HARD mode, only mark the selected queen as conflicting if it has conflicts
+                    if (selectedQueen != null && selectedQueen in findConflictingQueens(queens)) {
+                        setOf(selectedQueen)
+                    } else {
+                        emptySet()
+                    }
+                }
+            }
+
+        val attackedCells =
+            when (difficulty) {
+                Difficulty.EASY -> selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
+                Difficulty.MEDIUM, Difficulty.HARD -> emptySet()
+            }
 
         val cells = mutableListOf<CellState>()
         for (row in 0 until boardSize) {
@@ -110,6 +132,7 @@ object NQueensLogic {
 
         return BoardRenderState(
             boardSize = boardSize,
+            difficulty = difficulty,
             cells = cells,
             queensRemaining = boardSize - queens.size,
             isSolved = isSolved(queens, boardSize),

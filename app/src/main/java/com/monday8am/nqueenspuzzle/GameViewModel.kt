@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.monday8am.nqueenspuzzle.logic.NQueensLogic
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class GameViewModel : ViewModel() {
     data class GameState(
         val boardSize: Int = 8,
+        val difficulty: Difficulty = Difficulty.EASY,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
         val gameStartTime: Long? = null,
@@ -49,12 +51,21 @@ class GameViewModel : ViewModel() {
             is GameAction.SetBoardSize -> {
                 GameState(
                     boardSize = action.size,
+                    difficulty = state.difficulty,
+                )
+            }
+
+            is GameAction.SetDifficulty -> {
+                GameState(
+                    boardSize = state.boardSize,
+                    difficulty = action.difficulty,
                 )
             }
 
             is GameAction.Reset -> {
                 GameState(
                     boardSize = state.boardSize,
+                    difficulty = state.difficulty,
                 )
             }
         }
@@ -113,6 +124,7 @@ class GameViewModel : ViewModel() {
                 boardSize = state.boardSize,
                 queens = state.queens,
                 selectedQueen = state.selectedQueen,
+                difficulty = state.difficulty,
             )
 
         // Capture end time and emit navigation event when puzzle is solved

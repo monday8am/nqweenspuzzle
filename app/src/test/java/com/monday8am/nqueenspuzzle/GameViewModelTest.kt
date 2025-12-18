@@ -1,5 +1,6 @@
 package com.monday8am.nqueenspuzzle
 
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import org.junit.Assert.*
 import org.junit.Before
@@ -233,5 +234,43 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         assertFalse(state.isSolved)
+    }
+
+    // ==================== SetDifficulty ====================
+
+    @Test
+    fun `setDifficulty changes difficulty level`() {
+        viewModel.dispatch(GameAction.SetDifficulty(Difficulty.HARD))
+
+        val state = viewModel.renderState.value
+        assertEquals(com.monday8am.nqueenspuzzle.models.Difficulty.HARD, state.difficulty)
+    }
+
+    @Test
+    fun `setDifficulty clears existing queens`() {
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(1, 2)))
+        viewModel.dispatch(GameAction.SetDifficulty(com.monday8am.nqueenspuzzle.models.Difficulty.MEDIUM))
+
+        val state = viewModel.renderState.value
+        assertFalse(state.cells.any { it.hasQueen })
+        assertEquals(8, state.queensRemaining)
+    }
+
+    @Test
+    fun `setDifficulty preserves board size`() {
+        viewModel.dispatch(GameAction.SetBoardSize(6))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.SetDifficulty(com.monday8am.nqueenspuzzle.models.Difficulty.HARD))
+
+        val state = viewModel.renderState.value
+        assertEquals(6, state.boardSize)
+        assertEquals(36, state.cells.size)
+    }
+
+    @Test
+    fun `initial state has EASY difficulty`() {
+        val state = viewModel.renderState.value
+        assertEquals(com.monday8am.nqueenspuzzle.models.Difficulty.EASY, state.difficulty)
     }
 }

@@ -1,5 +1,6 @@
 package com.monday8am.nqueenspuzzle.logic
 
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import org.junit.Assert.*
 import org.junit.Test
@@ -428,5 +429,111 @@ class NQueensLogicTest {
                 selectedQueen = null,
             )
         assertFalse(state.isSolved)
+    }
+
+    // ==================== Difficulty Level Tests ====================
+
+    @Test
+    fun `buildBoardRenderState EASY mode shows all hints`() {
+        val queens = setOf(Position(0, 0), Position(0, 3))
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = queens,
+                selectedQueen = Position(0, 0),
+                difficulty = com.monday8am.nqueenspuzzle.models.Difficulty.EASY,
+            )
+
+        // Should show attacked cells (black dots)
+        val attackedCells = state.cells.filter { it.isEmptyAndAttacked }
+        assertTrue(attackedCells.isNotEmpty())
+
+        // Should show conflicting queens (red circle)
+        val attackedQueens = state.cells.filter { it.hasQueenAttacked }
+        assertEquals(1, attackedQueens.size) // Position(0, 3) should have red circle
+
+        // Should show selected conflicting queen (red background)
+        val attackingQueen = state.cells.find { it.hasQueenAttacking }
+        assertNotNull(attackingQueen)
+        assertEquals(Position(0, 0), attackingQueen?.position)
+    }
+
+    @Test
+    fun `buildBoardRenderState MEDIUM mode shows partial hints`() {
+        val queens = setOf(Position(0, 0), Position(0, 3))
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = queens,
+                selectedQueen = Position(0, 0),
+                difficulty = com.monday8am.nqueenspuzzle.models.Difficulty.MEDIUM,
+            )
+
+        // Should NOT show attacked cells
+        val attackedCells = state.cells.filter { it.isEmptyAndAttacked }
+        assertTrue(attackedCells.isEmpty())
+
+        // Should show conflicting queens (red circle)
+        val attackedQueens = state.cells.filter { it.hasQueenAttacked }
+        assertEquals(1, attackedQueens.size)
+
+        // Should show selected conflicting queen (red background)
+        val attackingQueen = state.cells.find { it.hasQueenAttacking }
+        assertNotNull(attackingQueen)
+    }
+
+    @Test
+    fun `buildBoardRenderState HARD mode shows minimal hints`() {
+        val queens = setOf(Position(0, 0), Position(0, 3))
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = queens,
+                selectedQueen = Position(0, 0),
+                difficulty = com.monday8am.nqueenspuzzle.models.Difficulty.HARD,
+            )
+
+        // Should NOT show attacked cells
+        val attackedCells = state.cells.filter { it.isEmptyAndAttacked }
+        assertTrue(attackedCells.isEmpty())
+
+        // Should NOT show non-selected conflicting queens
+        val attackedQueens = state.cells.filter { it.hasQueenAttacked }
+        assertTrue(attackedQueens.isEmpty())
+
+        // Should ONLY show selected conflicting queen (red background)
+        val attackingQueen = state.cells.find { it.hasQueenAttacking }
+        assertNotNull(attackingQueen)
+        assertEquals(Position(0, 0), attackingQueen?.position)
+    }
+
+    @Test
+    fun `buildBoardRenderState HARD mode shows no conflict when selected queen is safe`() {
+        val queens = setOf(Position(0, 0), Position(2, 1))
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = queens,
+                selectedQueen = Position(0, 0),
+                difficulty = Difficulty.HARD,
+            )
+
+        // No conflicts at all
+        val conflictingCells = state.cells.filter { it.isConflicting }
+        assertTrue(conflictingCells.isEmpty())
+    }
+
+    @Test
+    fun `buildBoardRenderState uses EASY as default`() {
+        val state =
+            NQueensLogic.buildBoardRenderState(
+                boardSize = 4,
+                queens = setOf(Position(0, 0)),
+                selectedQueen = Position(0, 0),
+            )
+
+        // Should behave like EASY mode (show attacked cells)
+        val attackedCells = state.cells.filter { it.isEmptyAndAttacked }
+        assertTrue(attackedCells.isNotEmpty())
     }
 }

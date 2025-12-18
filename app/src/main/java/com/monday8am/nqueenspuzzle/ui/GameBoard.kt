@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.CellState
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 
 private val LightSquareColor = Color(0xFFebecd0)
@@ -131,6 +132,7 @@ private fun GameBoardPreviewInProgress() {
     val inProgressState =
         BoardRenderState(
             boardSize = 8,
+            difficulty = Difficulty.EASY,
             cells = cells,
             queensRemaining = 5,
             isSolved = false,
