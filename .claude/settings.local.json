@@ -3,7 +3,9 @@
     "allow": [
       "Bash(./gradlew test:*)",
       "Bash(./gradlew :app:testDebugUnitTest:*)",
-      "Bash(./gradlew assembleDebug:*)"
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)"
     ]
   }
 }

@@ -64,12 +64,11 @@ class GameViewModelTest {
         assertEquals(5, state.queensRemaining)
     }
 
-    // ==================== TapCell - Selecting Queens ====================
+    // ==================== TapCell - Auto-Select on Place ====================
 
     @Test
-    fun `tapping queen selects it and shows attacked cells`() {
-        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place queen
-        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select it
+    fun `placing queen auto-selects it and shows attacked cells`() {
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place queen (auto-selects)
 
         val state = viewModel.renderState.value
         val attackedCells = state.cells.filter { it.isAttacked }
@@ -77,15 +76,13 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `selecting different queen changes attacked cells`() {
-        viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Place first queen
-        viewModel.dispatch(GameAction.TapCell(Position(7, 7))) // Place second queen
-        viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Select first
+    fun `placing different queen changes selection and attacked cells`() {
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Place first queen (selected)
 
         val state1 = viewModel.renderState.value
         val attacked1 = state1.cells.filter { it.isAttacked }.map { it.position }.toSet()
 
-        viewModel.dispatch(GameAction.TapCell(Position(7, 7))) // Select second
+        viewModel.dispatch(GameAction.TapCell(Position(7, 7))) // Place second queen (now selected)
 
         val state2 = viewModel.renderState.value
         val attacked2 = state2.cells.filter { it.isAttacked }.map { it.position }.toSet()
@@ -96,10 +93,9 @@ class GameViewModelTest {
     // ==================== TapCell - Removing Queens ====================
 
     @Test
-    fun `tapping selected queen removes it`() {
+    fun `tapping queen removes it`() {
         viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place
-        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select
-        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Remove
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Remove (tapping existing queen)
 
         val state = viewModel.renderState.value
         assertFalse(state.cells.find { it.position == Position(3, 3) }!!.hasQueen)
@@ -108,8 +104,7 @@ class GameViewModelTest {
 
     @Test
     fun `removing queen clears attacked cells`() {
-        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place
-        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Select
+        viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Place (auto-selects, shows attacked)
         viewModel.dispatch(GameAction.TapCell(Position(3, 3))) // Remove
 
         val state = viewModel.renderState.value
@@ -231,5 +226,42 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         assertFalse(state.isSolved)
+    }
+
+    // ==================== Hint ====================
+
+    @Test
+    fun `ToggleHint shows hint cell`() {
+        viewModel.dispatch(GameAction.ShowHint)
+
+        val state = viewModel.renderState.value
+        assertTrue(state.cells.any { it.isHint })
+    }
+
+    @Test
+    fun `ToggleHint twice hides hint`() {
+        viewModel.dispatch(GameAction.ShowHint)
+        viewModel.dispatch(GameAction.ShowHint)
+
+        val state = viewModel.renderState.value
+        assertFalse(state.cells.any { it.isHint })
+    }
+
+    @Test
+    fun `TapCell hides hint`() {
+        viewModel.dispatch(GameAction.ShowHint)
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+
+        val state = viewModel.renderState.value
+        assertFalse(state.cells.any { it.isHint })
+    }
+
+    @Test
+    fun `Reset hides hint`() {
+        viewModel.dispatch(GameAction.ShowHint)
+        viewModel.dispatch(GameAction.Reset)
+
+        val state = viewModel.renderState.value
+        assertFalse(state.cells.any { it.isHint })
     }
 }

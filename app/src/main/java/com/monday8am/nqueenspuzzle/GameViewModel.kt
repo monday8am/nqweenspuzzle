@@ -20,7 +20,7 @@ class GameViewModel : ViewModel() {
         val boardSize: Int = 8,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
-        val showHints: Boolean = true,
+        val showHint: Boolean = false,
         val gameStartTime: Long? = null,
         val gameEndTime: Long? = null
     )
@@ -41,15 +41,16 @@ class GameViewModel : ViewModel() {
 
     private fun reduce(state: GameState, action: GameAction): GameState {
         return when (action) {
-            is GameAction.TapCell -> handleCellTap(state, action.position)
+            is GameAction.TapCell -> handleCellTap(state, action.position).copy(showHint = false)
             is GameAction.SetBoardSize -> GameState(
                 boardSize = action.size,
-                showHints = state.showHints
+                showHint = false
             )
             is GameAction.Reset -> GameState(
                 boardSize = state.boardSize,
-                showHints = state.showHints
+                showHint = false
             )
+            is GameAction.ShowHint -> state.copy(showHint = true)
         }
     }
 
@@ -97,11 +98,11 @@ class GameViewModel : ViewModel() {
     }
 
     private fun buildRenderState(state: GameState): BoardRenderState {
-        val selectedForHints = if (state.showHints) state.selectedQueen else null
         val renderState = NQueensLogic.buildBoardRenderState(
             boardSize = state.boardSize,
             queens = state.queens,
-            selectedQueen = selectedForHints
+            selectedQueen = state.selectedQueen,
+            showHint = state.showHint,
         )
 
         // Capture end time and emit navigation event when puzzle is solved

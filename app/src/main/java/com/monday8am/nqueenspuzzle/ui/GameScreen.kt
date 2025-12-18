@@ -37,6 +37,7 @@ fun GameScreen(
         onBoardSizeSelected = { size -> viewModel.dispatch(GameAction.SetBoardSize(size)) },
         onCellTap = { position -> viewModel.dispatch(GameAction.TapCell(position)) },
         onResetClick = { viewModel.dispatch(GameAction.Reset) },
+        onShowHint = { viewModel.dispatch(GameAction.ShowHint) },
         modifier = modifier,
     )
 }
@@ -47,6 +48,7 @@ private fun GameScreenContent(
     onBoardSizeSelected: (Int) -> Unit,
     onCellTap: (Position) -> Unit,
     onResetClick: () -> Unit,
+    onShowHint: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
@@ -56,6 +58,7 @@ private fun GameScreenContent(
         LandscapeLayout(
             state = state,
             onBoardSizeSelected = onBoardSizeSelected,
+            onShowHint = onShowHint,
             onCellTap = onCellTap,
             onResetClick = onResetClick,
             modifier = modifier
@@ -66,6 +69,7 @@ private fun GameScreenContent(
             onBoardSizeSelected = onBoardSizeSelected,
             onCellTap = onCellTap,
             onResetClick = onResetClick,
+            onShowHint = onShowHint,
             modifier = modifier
         )
     }
@@ -76,6 +80,7 @@ private fun PortraitLayout(
     state: BoardRenderState,
     onBoardSizeSelected: (Int) -> Unit,
     onCellTap: (Position) -> Unit,
+    onShowHint: () -> Unit,
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -104,6 +109,7 @@ private fun PortraitLayout(
             boardSize = state.boardSize,
             isSolved = state.isSolved,
             onBoardSizeSelected = onBoardSizeSelected,
+            onShowHint = onShowHint,
             onResetClick = onResetClick,
         )
     }
@@ -115,6 +121,7 @@ private fun LandscapeLayout(
     onBoardSizeSelected: (Int) -> Unit,
     onCellTap: (Position) -> Unit,
     onResetClick: () -> Unit,
+    onShowHint: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -147,6 +154,7 @@ private fun LandscapeLayout(
                 isSolved = state.isSolved,
                 onBoardSizeSelected = onBoardSizeSelected,
                 onResetClick = onResetClick,
+                onShowHint = onShowHint,
                 modifier = Modifier
             )
         }
@@ -164,6 +172,7 @@ private fun GameScreenContentPreview() {
         ),
         onBoardSizeSelected = { },
         onCellTap = { },
+        onShowHint = { },
         onResetClick = { },
     )
 }
@@ -183,6 +192,7 @@ private fun GameScreenContentLandscapePreview() {
         ),
         onBoardSizeSelected = { },
         onCellTap = { },
+        onShowHint = { },
         onResetClick = { },
     )
 }

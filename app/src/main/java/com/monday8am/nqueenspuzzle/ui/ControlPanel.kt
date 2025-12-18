@@ -21,9 +21,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun ControlPanel(
     boardSize: Int,
-    isSolved: Boolean, // temporal!
+    isSolved: Boolean,
     onBoardSizeSelected: (Int) -> Unit,
     onResetClick: () -> Unit,
+    onShowHint: () -> Unit,
     verticalArrangement: Arrangement.Vertical = spacedBy(16.dp),
     modifier: Modifier = Modifier,
 ) {
@@ -60,7 +61,7 @@ internal fun ControlPanel(
                 Text("Reset")
             }
             Button(
-                onClick = onResetClick,
+                onClick = onShowHint,
                 modifier = Modifier.width(120.dp)
             ) {
                 Text("Show Hint")
@@ -85,6 +86,7 @@ private fun ControlPanelPreview() {
             isSolved = false,
             onBoardSizeSelected = {},
             onResetClick = {},
+            onShowHint = {},
             modifier = Modifier.padding(16.dp)
         )
     }
@@ -99,6 +101,7 @@ private fun ControlPanelSolvedPreview() {
             isSolved = true,
             onBoardSizeSelected = {},
             onResetClick = {},
+            onShowHint = {},
             modifier = Modifier.padding(16.dp)
         )
     }

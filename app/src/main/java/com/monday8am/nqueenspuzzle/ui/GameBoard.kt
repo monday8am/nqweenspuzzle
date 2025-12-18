@@ -29,6 +29,7 @@ import com.monday8am.nqueenspuzzle.models.Position
 private val LightSquareColor = Color(0xFFebecd0)
 private val DarkSquareColor = Color(0xFF739552)
 private val ConflictColor = Color(0xFFE53935)
+private val HintColor = Color(0xFF4CAF50)
 private val QueenColor = Color(0xFF1B1B1B)
 private val markerColor = Color.Black.copy(alpha = 0.2f)
 private val attackedQueenColor = ConflictColor.copy(alpha = 0.8f)
@@ -77,6 +78,7 @@ private fun Cell(
     onClick: () -> Unit
 ) {
     val backgroundColor = when {
+        cell.isHint -> HintColor
         cell.hasQueenAttacking -> ConflictColor
         cell.isLightSquare -> LightSquareColor
         else -> DarkSquareColor
