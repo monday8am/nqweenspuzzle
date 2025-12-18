@@ -35,7 +35,8 @@ internal val cells = (0 until boardSize).flatMap { row ->
             isAttacked = attackedPositions.contains(position) && !hasQueen,
             isConflicting = (position == Position(0, 0) || position == Position(0, 4)), // Mark conflicting queens
             isHint = false,
-            isLightSquare = (row + col) % 2 != 0
+            isLightSquare = (row + col) % 2 != 0,
+            isSelected = if (hasQueen) position == Position(0, 0) else false,
         )
     }
 }

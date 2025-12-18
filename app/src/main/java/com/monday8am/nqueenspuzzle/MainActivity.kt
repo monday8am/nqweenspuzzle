@@ -5,28 +5,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
-import com.monday8am.nqueenspuzzle.ui.GameScreen
+import com.monday8am.nqueenspuzzle.data.ScoreRepository
+import com.monday8am.nqueenspuzzle.navigation.NQueensNavHost
 import com.monday8am.nqueenspuzzle.ui.theme.NQueensPuzzleTheme
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel: GameViewModel by viewModels()
+    private lateinit var scoreRepository: ScoreRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        scoreRepository = ScoreRepository(applicationContext)
         enableEdgeToEdge()
         setContent {
             NQueensPuzzleTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    GameScreen(
-                        viewModel = viewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                NQueensNavHost(
+                    viewModel = viewModel,
+                    scoreRepository = scoreRepository
+                )
             }
         }
     }
