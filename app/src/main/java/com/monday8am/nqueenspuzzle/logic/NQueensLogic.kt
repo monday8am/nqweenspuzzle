@@ -128,7 +128,6 @@ object NQueensLogic {
 
     fun getSolution(): Set<Position> {
         // TODO not implemented yet!
-        // Evaluate the closest solution?
         return emptySet()
     }
 }

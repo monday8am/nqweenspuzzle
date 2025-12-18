@@ -6,5 +6,5 @@ sealed class GameAction {
     data class TapCell(val position: Position) : GameAction()
     data class SetBoardSize(val size: Int) : GameAction()
     data object Reset : GameAction()
-    data object ToggleHint : GameAction()
+    data object ShowHint : GameAction()
 }
