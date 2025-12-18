@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-// Extension property for DataStore
+private const val LEADERBOARD_SIZE = 10
 private val Context.scoresDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "n_queens_scores"
 )
@@ -34,21 +34,17 @@ class ScoreRepository(context: Context) {
         }
     }
 
-    /**
-     * Add a new score entry with FIFO strategy
-     * - Keeps max 10 records per board size
-     * - If there are more than 10, removes oldest ones (FIFO)
+    /* Leaderboard filtered by board size and sorted by fastest time.
+     *  Only the top 10 scores are returned.
      */
     suspend fun addScore(boardSize: Int, elapsedSeconds: Long) {
         dataStore.edit { preferences ->
             val key = stringPreferencesKey("scores_boardSize_$boardSize")
             val nextIdKey = intPreferencesKey("next_score_id")
 
-            // Get next ID
             val nextId = preferences[nextIdKey] ?: 1
             preferences[nextIdKey] = nextId + 1
 
-            // Read existing scores
             val jsonString = preferences[key] ?: "[]"
             val existingScores = try {
                 Json.decodeFromString<List<ScoreEntry>>(jsonString)
@@ -56,7 +52,6 @@ class ScoreRepository(context: Context) {
                 emptyList()
             }
 
-            // Create new score entry
             val newScore = ScoreEntry(
                 id = nextId,
                 boardSize = boardSize,
@@ -64,27 +59,11 @@ class ScoreRepository(context: Context) {
                 timestamp = System.currentTimeMillis()
             )
 
-            // Add new score and apply FIFO strategy
             val allScores = existingScores + newScore
+            val sortedBySpeed = allScores.sortedBy { it.elapsedSeconds }
+            val finalScores = sortedBySpeed.take(LEADERBOARD_SIZE)
 
-            // Sort by timestamp (oldest first)
-            val sortedByTime = allScores.sortedBy { it.timestamp }
-            val finalScores = when {
-                sortedByTime.size > 10 -> sortedByTime.takeLast(10)
-                else -> sortedByTime
-            }
-
-            // Save back to DataStore
-            val updatedJson = Json.encodeToString(finalScores)
-            preferences[key] = updatedJson
+            preferences[key] = Json.encodeToString(finalScores)
         }
-    }
-
-    suspend fun deleteScore(boardSize: Int, scoreId: Int) {
-        // TODO: Implement if needed
-    }
-
-    suspend fun clearScoresForBoardSize(boardSize: Int) {
-        // TODO: Implement if needed
     }
 }
