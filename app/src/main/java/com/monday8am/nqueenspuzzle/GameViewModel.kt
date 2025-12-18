@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
  * Acts as a thin adapter between the game engine and the UI.
  */
 class GameViewModel : ViewModel() {
+
     // Game engine instance
     private val game = NQueensGame(initialConfig = GameConfig())
 
@@ -43,12 +44,12 @@ class GameViewModel : ViewModel() {
     private val _navigationEvent = Channel<NavigationEvent>()
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
-    fun dispatch(action: GameAction) {
+    fun dispatch(action: UserAction) {
         when (action) {
-            is GameAction.TapCell -> game.userMove(action.position)
-            is GameAction.SetBoardSize -> game.restart(game.config.copy(boardSize = action.size))
-            is GameAction.SetDifficulty -> game.restart(game.config.copy(difficulty = action.difficulty))
-            is GameAction.Reset -> game.restart()
+            is UserAction.TapCell -> game.userMove(action.position)
+            is UserAction.SetBoardSize -> game.restart(game.config.copy(boardSize = action.size))
+            is UserAction.SetDifficulty -> game.restart(game.config.copy(difficulty = action.difficulty))
+            is UserAction.Reset -> game.restart()
         }
     }
 

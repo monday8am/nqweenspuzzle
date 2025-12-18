@@ -14,7 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.monday8am.nqueenspuzzle.GameAction
+import com.monday8am.nqueenspuzzle.UserAction
 import com.monday8am.nqueenspuzzle.GameViewModel
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
 import com.monday8am.nqueenspuzzle.ui.GameScreen
@@ -68,7 +68,7 @@ fun NQueensNavHost(
                 ResultsScreen(
                     viewModel = resultsViewModel,
                     onNewGameClick = {
-                        viewModel.dispatch(GameAction.Reset)
+                        viewModel.dispatch(UserAction.Reset)
                         navController.popBackStack()
                     },
                 )

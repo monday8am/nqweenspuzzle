@@ -3,18 +3,18 @@ package com.monday8am.nqueenspuzzle
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 
-sealed class GameAction {
+sealed class UserAction {
     data class TapCell(
         val position: Position,
-    ) : GameAction()
+    ) : UserAction()
 
     data class SetBoardSize(
         val size: Int,
-    ) : GameAction()
+    ) : UserAction()
 
     data class SetDifficulty(
         val difficulty: Difficulty,
-    ) : GameAction()
+    ) : UserAction()
 
-    data object Reset : GameAction()
+    data object Reset : UserAction()
 }

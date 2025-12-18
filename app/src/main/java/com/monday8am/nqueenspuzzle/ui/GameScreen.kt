@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.monday8am.nqueenspuzzle.GameAction
+import com.monday8am.nqueenspuzzle.UserAction
 import com.monday8am.nqueenspuzzle.GameViewModel
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.Difficulty
@@ -34,10 +34,10 @@ fun GameScreen(
 
     GameScreenContent(
         state = state,
-        onBoardSizeSelected = { size -> viewModel.dispatch(GameAction.SetBoardSize(size)) },
-        onDifficultySelected = { difficulty -> viewModel.dispatch(GameAction.SetDifficulty(difficulty)) },
-        onCellTap = { position -> viewModel.dispatch(GameAction.TapCell(position)) },
-        onResetClick = { viewModel.dispatch(GameAction.Reset) },
+        onBoardSizeSelected = { size -> viewModel.dispatch(UserAction.SetBoardSize(size)) },
+        onDifficultySelected = { difficulty -> viewModel.dispatch(UserAction.SetDifficulty(difficulty)) },
+        onCellTap = { position -> viewModel.dispatch(UserAction.TapCell(position)) },
+        onResetClick = { viewModel.dispatch(UserAction.Reset) },
         modifier = modifier,
     )
 }
