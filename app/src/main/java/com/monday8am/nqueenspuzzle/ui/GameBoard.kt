@@ -64,7 +64,7 @@ fun GameBoard(
             }
         }
         Text(
-            text ="Calculation time: ${state.calculationTime}ms",
+            text ="Calculation time: ${state.processingTime}ms",
             fontSize = 12.sp,
             color = Color.DarkGray,
         )
@@ -140,9 +140,9 @@ private fun GameBoardPreviewInProgress() {
     val inProgressState = BoardRenderState(
         boardSize = 8,
         cells = cells,
-        queensRemaining = 5, // 8 - 3
+        queensRemaining = 5,
         isSolved = false,
-        calculationTime = 45L // e.g., 45 seconds
+        processingTime = 45L
     )
 
     GameBoard(
