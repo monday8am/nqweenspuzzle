@@ -7,12 +7,15 @@ import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.monday8am.nqueenspuzzle.navigation.ResultsRoute
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class GameViewModel : ViewModel() {
@@ -27,134 +30,111 @@ class GameViewModel : ViewModel() {
 
     private val _gameState = MutableStateFlow(GameState())
 
-    private val _renderState = MutableStateFlow(buildRenderState(_gameState.value))
-    val renderState: StateFlow<BoardRenderState> = _renderState.asStateFlow()
-
-    private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
-    val navigationEvent: SharedFlow<NavigationEvent> = _navigationEvent.asSharedFlow()
-
-    fun dispatch(action: GameAction) {
-        val newState = reduce(_gameState.value, action)
-        _gameState.value = newState
-        _renderState.value = buildRenderState(newState)
-    }
-
-    private fun reduce(
-        state: GameState,
-        action: GameAction,
-    ): GameState =
-        when (action) {
-            is GameAction.TapCell -> {
-                handleCellTap(state, action.position)
-            }
-
-            is GameAction.SetBoardSize -> {
-                GameState(
-                    boardSize = action.size,
-                    difficulty = state.difficulty,
-                )
-            }
-
-            is GameAction.SetDifficulty -> {
-                GameState(
-                    boardSize = state.boardSize,
-                    difficulty = action.difficulty,
-                )
-            }
-
-            is GameAction.Reset -> {
-                GameState(
-                    boardSize = state.boardSize,
-                    difficulty = state.difficulty,
-                )
-            }
-        }
-
-    private fun handleCellTap(
-        state: GameState,
-        position: Position,
-    ): GameState =
-        when {
-            // remove queen
-            position in state.queens -> {
-                state.copy(
-                    queens = state.queens - position,
-                    selectedQueen = null,
-                )
-            }
-
-            // add queen
-            state.queens.size <= state.boardSize -> {
-                val newState =
-                    if (state.selectedQueen != null && NQueensLogic.findConflictingQueens(state.queens).isNotEmpty()) {
-                        state.copy(
-                            queens = state.queens - state.selectedQueen + position,
-                            selectedQueen = position,
-                        )
-                    } else {
-                        state.copy(
-                            queens = state.queens + position,
-                            selectedQueen = position,
-                        )
-                    }
-                // Start timer on first queen placement
-                if (state.queens.isEmpty() && state.gameStartTime == null) {
-                    newState.copy(gameStartTime = System.currentTimeMillis())
-                } else {
-                    newState
-                }
-            }
-
-            state.selectedQueen != null -> {
-                state.copy(
-                    queens = state.queens - state.selectedQueen + position,
-                    selectedQueen = position,
-                )
-            }
-
-            // Improbable case: Tapped on an empty cell, board is full, and no queen is selected.
-            else -> {
-                state
-            } // No change
-        }
-
-    private fun buildRenderState(state: GameState): BoardRenderState {
-        val renderState =
+    val renderState: StateFlow<BoardRenderState> = _gameState
+        .map { state ->
             NQueensLogic.buildBoardRenderState(
                 boardSize = state.boardSize,
                 queens = state.queens,
                 selectedQueen = state.selectedQueen,
                 difficulty = state.difficulty,
             )
-
-        // Capture end time and emit navigation event when puzzle is solved
-        // TODO: deal with this side effect
-        if (renderState.isSolved && state.gameEndTime == null) {
-            val updatedState = state.copy(gameEndTime = System.currentTimeMillis())
-            _gameState.value = updatedState
-
-            val elapsedSeconds = getElapsedTimeSeconds(updatedState)
-            if (elapsedSeconds != null) {
-                viewModelScope.launch {
-                    _navigationEvent.emit(
-                        NavigationEvent.NavigateToResults(
-                            route =
-                                com.monday8am.nqueenspuzzle.navigation.ResultsRoute(
-                                    boardSize = state.boardSize,
-                                    elapsedSeconds = elapsedSeconds,
-                                ),
-                        ),
-                    )
-                }
-            }
         }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = NQueensLogic.buildBoardRenderState(
+                boardSize = _gameState.value.boardSize,
+                queens = _gameState.value.queens,
+                selectedQueen = _gameState.value.selectedQueen,
+                difficulty = _gameState.value.difficulty,
+            )
+        )
 
-        return renderState
+    private val _navigationEvent = Channel<NavigationEvent>()
+    val navigationEvent = _navigationEvent.receiveAsFlow()
+
+    fun dispatch(action: GameAction) {
+        _gameState.update { currentState ->
+            val nextState = reduce(currentState, action)
+            // check for side effects (like winning).
+            checkForWinCondition(currentState, nextState)
+            nextState
+        }
     }
 
-    private fun getElapsedTimeSeconds(state: GameState): Long? {
-        val start = state.gameStartTime ?: return null
-        val end = state.gameEndTime ?: return null
-        return (end - start) / 1000 // Convert ms to seconds
+    private fun reduce(state: GameState, action: GameAction): GameState = when (action) {
+        is GameAction.TapCell -> handleCellTap(state, action.position)
+        is GameAction.SetBoardSize -> GameState(boardSize = action.size, difficulty = state.difficulty)
+        is GameAction.SetDifficulty -> state.copy(difficulty = action.difficulty)
+        is GameAction.Reset -> GameState(boardSize = state.boardSize, difficulty = state.difficulty)
+    }
+
+    private fun handleCellTap(state: GameState, position: Position): GameState {
+        // Do not process taps if the game is already won.
+        if (state.gameEndTime != null) return state
+
+        val newQueens: Set<Position>
+        val newSelected: Position?
+
+        when {
+            // Case 1: Tap on an existing queen to remove it.
+            position in state.queens -> {
+                newQueens = state.queens - position
+                newSelected = if (position == state.selectedQueen) null else state.selectedQueen
+            }
+            // Case 2: Tap on an empty cell to move the selected queen.
+            // Only if it's in conflict with another queen.
+            state.selectedQueen != null && NQueensLogic.findConflictingQueens(state.queens).contains(state.selectedQueen) -> {
+                newQueens = state.queens - state.selectedQueen + position
+                newSelected = position
+            }
+            // Case 3: Tap on an empty cell to add a new queen (if board is not full).
+            state.queens.size < state.boardSize -> {
+                newQueens = state.queens + position
+                newSelected = position
+            }
+            // Case 4: Board is full and no queen is selected -> do nothing.
+            else -> return state
+        }
+
+        // Start the timer on the very first move.
+        val startTime = if (state.queens.isEmpty() && newQueens.isNotEmpty()) {
+            System.currentTimeMillis()
+        } else {
+            state.gameStartTime
+        }
+
+        return state.copy(
+            queens = newQueens,
+            selectedQueen = newSelected,
+            gameStartTime = startTime
+        )
+    }
+
+    /**
+     * Checks if the puzzle was solved after a state change and triggers the win side effect.
+     */
+    private fun checkForWinCondition(previousState: GameState, newState: GameState) {
+        // Only check if the game wasn't already won and is now solved.
+        if (previousState.gameEndTime == null && NQueensLogic.isSolved(newState.queens, newState.boardSize)) {
+            val endTime = System.currentTimeMillis()
+            val startTime = newState.gameStartTime ?: endTime
+            val elapsedSeconds = (endTime - startTime) / 1000
+
+            // Update the state to record the win time. This stops the timer and future checks.
+            _gameState.update { it.copy(gameEndTime = endTime) }
+
+            // Launch a coroutine to send the one-time navigation event.
+            viewModelScope.launch {
+                _navigationEvent.send(
+                    NavigationEvent.NavigateToResults(
+                        route = ResultsRoute(
+                            boardSize = newState.boardSize,
+                            elapsedSeconds = elapsedSeconds
+                        )
+                    )
+                )
+            }
+        }
     }
 }
