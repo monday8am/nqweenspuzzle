@@ -1,11 +1,12 @@
 package com.monday8am.nqueenspuzzle.logic
 
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
-import com.monday8am.nqueenspuzzle.models.CellState
-import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import kotlin.math.abs
 
+/**
+ * Pure game logic for the N-Queens puzzle.
+ * Contains only game rules - no presentation/UI concerns.
+ */
 object NQueensLogic {
     fun hasConflict(
         a: Position,
@@ -76,72 +77,5 @@ object NQueensLogic {
     ): Boolean {
         if (queens.size != boardSize) return false
         return findConflictingQueens(queens).isEmpty()
-    }
-
-    fun buildBoardRenderState(
-        boardSize: Int,
-        queens: Set<Position>,
-        selectedQueen: Position?,
-        difficulty: Difficulty = Difficulty.EASY,
-    ): BoardRenderState {
-        val elapsedTimeMs = System.currentTimeMillis()
-
-        val conflictingQueens =
-            when (difficulty) {
-                Difficulty.EASY, Difficulty.MEDIUM -> {
-                    findConflictingQueens(queens)
-                }
-
-                Difficulty.HARD -> {
-                    // In HARD mode, only mark the selected queen as conflicting if it has conflicts
-                    if (selectedQueen != null && selectedQueen in findConflictingQueens(queens)) {
-                        setOf(selectedQueen)
-                    } else {
-                        emptySet()
-                    }
-                }
-            }
-
-        val attackedCells =
-            when (difficulty) {
-                Difficulty.EASY -> selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
-                Difficulty.MEDIUM, Difficulty.HARD -> emptySet()
-            }
-
-        val cells = mutableListOf<CellState>()
-        for (row in 0 until boardSize) {
-            for (col in 0 until boardSize) {
-                val position = Position(row, col)
-                val hasQueen = position in queens
-                val isConflicting = hasQueen && position in conflictingQueens
-                val isAttacked = position in attackedCells && !hasQueen
-                val isLightSquare = (row + col) % 2 == 0
-
-                cells.add(
-                    CellState(
-                        position = position,
-                        hasQueen = hasQueen,
-                        isConflicting = isConflicting,
-                        isAttacked = isAttacked,
-                        isLightSquare = isLightSquare,
-                        isSelected = position == selectedQueen,
-                    ),
-                )
-            }
-        }
-
-        return BoardRenderState(
-            boardSize = boardSize,
-            difficulty = difficulty,
-            cells = cells,
-            queensRemaining = boardSize - queens.size,
-            isSolved = isSolved(queens, boardSize),
-            processingTime = System.currentTimeMillis() - elapsedTimeMs,
-        )
-    }
-
-    fun getSolution(): Set<Position> {
-        // TODO not implemented yet!
-        return emptySet()
     }
 }

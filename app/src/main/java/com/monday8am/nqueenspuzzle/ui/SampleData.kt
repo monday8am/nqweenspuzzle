@@ -1,6 +1,8 @@
 package com.monday8am.nqueenspuzzle.ui
 
+import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.CellState
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 
 private const val boardSize = 8
@@ -87,3 +89,15 @@ internal val cells =
             )
         }
     }
+
+/**
+ * Sample BoardRenderState for Compose previews.
+ */
+internal val sampleBoardRenderState = BoardRenderState(
+    boardSize = boardSize,
+    difficulty = Difficulty.EASY,
+    cells = cells,
+    queensRemaining = boardSize - queenPositions.size,
+    isSolved = false,
+    processingTime = 0L,
+)

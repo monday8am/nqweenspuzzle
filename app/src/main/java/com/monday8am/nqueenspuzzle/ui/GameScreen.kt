@@ -21,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.monday8am.nqueenspuzzle.GameAction
 import com.monday8am.nqueenspuzzle.GameViewModel
-import com.monday8am.nqueenspuzzle.logic.NQueensLogic
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
@@ -123,7 +122,7 @@ private fun PortraitLayout(
 private fun LandscapeLayout(
     state: BoardRenderState,
     onBoardSizeSelected: (Int) -> Unit,
-    onDifficultySelected: (com.monday8am.nqueenspuzzle.models.Difficulty) -> Unit,
+    onDifficultySelected: (Difficulty) -> Unit,
     onCellTap: (Position) -> Unit,
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -171,13 +170,7 @@ private fun LandscapeLayout(
 @Composable
 private fun GameScreenContentPreview() {
     GameScreenContent(
-        state =
-            NQueensLogic.buildBoardRenderState(
-                boardSize = 8,
-                queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
-                selectedQueen = Position(0, 0),
-                difficulty = com.monday8am.nqueenspuzzle.models.Difficulty.EASY,
-            ),
+        state = sampleBoardRenderState,
         onBoardSizeSelected = { },
         onDifficultySelected = { },
         onCellTap = { },
@@ -193,13 +186,7 @@ private fun GameScreenContentPreview() {
 @Composable
 private fun GameScreenContentLandscapePreview() {
     GameScreenContent(
-        state =
-            NQueensLogic.buildBoardRenderState(
-                boardSize = 8,
-                queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
-                selectedQueen = Position(0, 0),
-                difficulty = com.monday8am.nqueenspuzzle.models.Difficulty.EASY,
-            ),
+        state = sampleBoardRenderState,
         onBoardSizeSelected = { },
         onDifficultySelected = { },
         onCellTap = { },
