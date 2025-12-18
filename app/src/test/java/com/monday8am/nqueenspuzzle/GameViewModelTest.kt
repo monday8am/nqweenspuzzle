@@ -2,16 +2,30 @@ package com.monday8am.nqueenspuzzle
 
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class GameViewModelTest {
     private lateinit var viewModel: GameViewModel
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
+        Dispatchers.setMain(testDispatcher)
         viewModel = GameViewModel()
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     // ==================== Initial State ====================
@@ -243,25 +257,25 @@ class GameViewModelTest {
         viewModel.dispatch(GameAction.SetDifficulty(Difficulty.HARD))
 
         val state = viewModel.renderState.value
-        assertEquals(com.monday8am.nqueenspuzzle.models.Difficulty.HARD, state.difficulty)
+        assertEquals(Difficulty.HARD, state.difficulty)
     }
 
     @Test
-    fun `setDifficulty clears existing queens`() {
+    fun `setDifficulty preserves existing queens`() {
         viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
-        viewModel.dispatch(GameAction.TapCell(Position(1, 2)))
-        viewModel.dispatch(GameAction.SetDifficulty(com.monday8am.nqueenspuzzle.models.Difficulty.MEDIUM))
+        viewModel.dispatch(GameAction.TapCell(Position(2, 1)))
+        viewModel.dispatch(GameAction.SetDifficulty(Difficulty.MEDIUM))
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.hasQueen })
-        assertEquals(8, state.queensRemaining)
+        assertEquals(2, state.cells.count { it.hasQueen })
+        assertEquals(6, state.queensRemaining)
     }
 
     @Test
     fun `setDifficulty preserves board size`() {
         viewModel.dispatch(GameAction.SetBoardSize(6))
         viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
-        viewModel.dispatch(GameAction.SetDifficulty(com.monday8am.nqueenspuzzle.models.Difficulty.HARD))
+        viewModel.dispatch(GameAction.SetDifficulty(Difficulty.HARD))
 
         val state = viewModel.renderState.value
         assertEquals(6, state.boardSize)
@@ -271,6 +285,84 @@ class GameViewModelTest {
     @Test
     fun `initial state has EASY difficulty`() {
         val state = viewModel.renderState.value
-        assertEquals(com.monday8am.nqueenspuzzle.models.Difficulty.EASY, state.difficulty)
+        assertEquals(Difficulty.EASY, state.difficulty)
+    }
+
+    // ==================== TapCell - Moving Queens ====================
+
+    @Test
+    fun `tapping empty cell moves conflicting selected queen`() {
+        // Place two conflicting queens on same row
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(0, 3))) // Same row - conflict, now selected
+
+        // Tap empty cell to move the selected conflicting queen
+        viewModel.dispatch(GameAction.TapCell(Position(2, 5)))
+
+        val state = viewModel.renderState.value
+        // Original position should be empty, new position should have queen
+        assertFalse(state.cells.find { it.position == Position(0, 3) }!!.hasQueen)
+        assertTrue(state.cells.find { it.position == Position(2, 5) }!!.hasQueen)
+        // First queen should still be there
+        assertTrue(state.cells.find { it.position == Position(0, 0) }!!.hasQueen)
+        assertEquals(6, state.queensRemaining)
+    }
+
+    @Test
+    fun `tapping empty cell does not move non-conflicting selected queen`() {
+        // Place a single queen (no conflict)
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0))) // Selected, no conflict
+
+        // Try to move by tapping empty cell - should add new queen instead
+        viewModel.dispatch(GameAction.TapCell(Position(2, 1)))
+
+        val state = viewModel.renderState.value
+        // Both positions should have queens (original not moved, new one added)
+        assertTrue(state.cells.find { it.position == Position(0, 0) }!!.hasQueen)
+        assertTrue(state.cells.find { it.position == Position(2, 1) }!!.hasQueen)
+        assertEquals(6, state.queensRemaining)
+    }
+
+    // ==================== TapCell - Game Won ====================
+
+    @Test
+    fun `tapping cell after game won is ignored`() {
+        viewModel.dispatch(GameAction.SetBoardSize(4))
+        // Place winning solution
+        viewModel.dispatch(GameAction.TapCell(Position(0, 1)))
+        viewModel.dispatch(GameAction.TapCell(Position(1, 3)))
+        viewModel.dispatch(GameAction.TapCell(Position(2, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(3, 2)))
+
+        assertTrue(viewModel.renderState.value.isSolved)
+
+        // Try to remove a queen after winning - should be ignored
+        viewModel.dispatch(GameAction.TapCell(Position(0, 1)))
+
+        val state = viewModel.renderState.value
+        // Queen should still be there
+        assertTrue(state.cells.find { it.position == Position(0, 1) }!!.hasQueen)
+        assertTrue(state.isSolved)
+    }
+
+    // ==================== TapCell - Board Full ====================
+
+    @Test
+    fun `tapping empty cell when board full does nothing`() {
+        viewModel.dispatch(GameAction.SetBoardSize(4))
+        // Place 4 queens (filling the board)
+        viewModel.dispatch(GameAction.TapCell(Position(0, 1)))
+        viewModel.dispatch(GameAction.TapCell(Position(1, 3)))
+        viewModel.dispatch(GameAction.TapCell(Position(2, 0)))
+        viewModel.dispatch(GameAction.TapCell(Position(3, 2)))
+
+        // Try to tap an empty cell - should do nothing since board is full and solved
+        val stateBefore = viewModel.renderState.value
+        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
+
+        val stateAfter = viewModel.renderState.value
+        // Board should remain solved with same queens
+        assertEquals(stateBefore.queensRemaining, stateAfter.queensRemaining)
+        assertTrue(stateAfter.isSolved)
     }
 }

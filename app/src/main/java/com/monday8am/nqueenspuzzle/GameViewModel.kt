@@ -41,7 +41,7 @@ class GameViewModel : ViewModel() {
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = NQueensLogic.buildBoardRenderState(
                 boardSize = _gameState.value.boardSize,
                 queens = _gameState.value.queens,
@@ -56,9 +56,15 @@ class GameViewModel : ViewModel() {
     fun dispatch(action: GameAction) {
         _gameState.update { currentState ->
             val nextState = reduce(currentState, action)
-            // check for side effects (like winning).
-            checkForWinCondition(currentState, nextState)
-            nextState
+
+            // Check for win condition and update gameEndTime in the same atomic update.
+            val finalState = applyWinCondition(currentState, nextState)
+            // Trigger navigation side effect if won.
+            if (currentState.gameEndTime == null && finalState.gameEndTime != null) {
+                triggerWinNavigation(finalState)
+            }
+            
+            finalState
         }
     }
 
@@ -111,30 +117,29 @@ class GameViewModel : ViewModel() {
         )
     }
 
-    /**
-     * Checks if the puzzle was solved after a state change and triggers the win side effect.
-     */
-    private fun checkForWinCondition(previousState: GameState, newState: GameState) {
+    private fun applyWinCondition(previousState: GameState, newState: GameState): GameState {
         // Only check if the game wasn't already won and is now solved.
         if (previousState.gameEndTime == null && NQueensLogic.isSolved(newState.queens, newState.boardSize)) {
             val endTime = System.currentTimeMillis()
-            val startTime = newState.gameStartTime ?: endTime
-            val elapsedSeconds = (endTime - startTime) / 1000
+            return newState.copy(gameEndTime = endTime)
+        }
+        return newState
+    }
 
-            // Update the state to record the win time. This stops the timer and future checks.
-            _gameState.update { it.copy(gameEndTime = endTime) }
+    private fun triggerWinNavigation(state: GameState) {
+        val endTime = state.gameEndTime ?: return
+        val startTime = state.gameStartTime ?: endTime
+        val elapsedSeconds = (endTime - startTime) / 1000
 
-            // Launch a coroutine to send the one-time navigation event.
-            viewModelScope.launch {
-                _navigationEvent.send(
-                    NavigationEvent.NavigateToResults(
-                        route = ResultsRoute(
-                            boardSize = newState.boardSize,
-                            elapsedSeconds = elapsedSeconds
-                        )
+        viewModelScope.launch {
+            _navigationEvent.send(
+                NavigationEvent.NavigateToResults(
+                    route = ResultsRoute(
+                        boardSize = state.boardSize,
+                        elapsedSeconds = elapsedSeconds
                     )
                 )
-            }
+            )
         }
     }
 }
