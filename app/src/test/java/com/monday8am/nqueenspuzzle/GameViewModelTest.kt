@@ -234,41 +234,4 @@ class GameViewModelTest {
         val state = viewModel.renderState.value
         assertFalse(state.isSolved)
     }
-
-    // ==================== Hint ====================
-
-    @Test
-    fun `ToggleHint shows hint cell`() {
-        viewModel.dispatch(GameAction.ShowHint)
-
-        val state = viewModel.renderState.value
-        assertTrue(state.cells.any { it.isHint })
-    }
-
-    @Test
-    fun `ToggleHint twice hides hint`() {
-        viewModel.dispatch(GameAction.ShowHint)
-        viewModel.dispatch(GameAction.ShowHint)
-
-        val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.isHint })
-    }
-
-    @Test
-    fun `TapCell hides hint`() {
-        viewModel.dispatch(GameAction.ShowHint)
-        viewModel.dispatch(GameAction.TapCell(Position(0, 0)))
-
-        val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.isHint })
-    }
-
-    @Test
-    fun `Reset hides hint`() {
-        viewModel.dispatch(GameAction.ShowHint)
-        viewModel.dispatch(GameAction.Reset)
-
-        val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.isHint })
-    }
 }

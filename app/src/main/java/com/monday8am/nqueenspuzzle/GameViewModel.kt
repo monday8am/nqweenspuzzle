@@ -19,7 +19,6 @@ class GameViewModel : ViewModel() {
         val boardSize: Int = 8,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
-        val showHint: Boolean = false,
         val gameStartTime: Long? = null,
         val gameEndTime: Long? = null,
     )
@@ -44,25 +43,19 @@ class GameViewModel : ViewModel() {
     ): GameState =
         when (action) {
             is GameAction.TapCell -> {
-                handleCellTap(state, action.position).copy(showHint = false)
+                handleCellTap(state, action.position)
             }
 
             is GameAction.SetBoardSize -> {
                 GameState(
                     boardSize = action.size,
-                    showHint = false,
                 )
             }
 
             is GameAction.Reset -> {
                 GameState(
                     boardSize = state.boardSize,
-                    showHint = false,
                 )
-            }
-
-            is GameAction.ShowHint -> {
-                state.copy(showHint = true)
             }
         }
 
@@ -120,7 +113,6 @@ class GameViewModel : ViewModel() {
                 boardSize = state.boardSize,
                 queens = state.queens,
                 selectedQueen = state.selectedQueen,
-                showHint = state.showHint,
             )
 
         // Capture end time and emit navigation event when puzzle is solved
