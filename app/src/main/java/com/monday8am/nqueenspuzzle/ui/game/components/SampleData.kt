@@ -1,7 +1,8 @@
-package com.monday8am.nqueenspuzzle.ui.game
+package com.monday8am.nqueenspuzzle.ui.game.components
 
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
+import com.monday8am.nqueenspuzzle.ui.game.CellState
 
 private const val boardSize = 8
 private val queenPositions = listOf(Position(0, 0), Position(1, 2), Position(0, 4)) // (0,0) and (0,4) conflict
@@ -92,7 +93,7 @@ internal val cells =
  * Sample BoardRenderState for Compose previews.
  */
 internal val sampleBoardRenderState =
-    BoardRenderState(
+    _root_ide_package_.com.monday8am.nqueenspuzzle.ui.game.BoardRenderState(
         boardSize = boardSize,
         difficulty = Difficulty.EASY,
         cells = cells,

@@ -21,7 +21,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.ui.game.UserAction
+import com.monday8am.nqueenspuzzle.ui.game.components.ControlPanel
+import com.monday8am.nqueenspuzzle.ui.game.components.GameBoard
+import com.monday8am.nqueenspuzzle.ui.game.components.sampleBoardRenderState
 
 @Composable
 fun GameScreen(

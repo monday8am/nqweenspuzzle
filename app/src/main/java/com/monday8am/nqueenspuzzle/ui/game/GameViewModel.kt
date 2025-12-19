@@ -8,7 +8,6 @@ import com.monday8am.nqueenspuzzle.logic.models.GameConfig
 import com.monday8am.nqueenspuzzle.logic.models.Position
 import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
 import com.monday8am.nqueenspuzzle.navigation.ResultsRoute
-import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +16,23 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+sealed class UserAction {
+    data class TapCell(
+        val position: Position,
+    ) : UserAction()
+
+    data class SetBoardSize(
+        val size: Int,
+    ) : UserAction()
+
+    data class SetDifficulty(
+        val difficulty: Difficulty,
+    ) : UserAction()
+
+    data object Reset : UserAction()
+}
+
 
 /**
  * ViewModel for the N-Queens game screen.
