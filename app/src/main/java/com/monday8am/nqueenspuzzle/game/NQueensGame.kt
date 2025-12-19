@@ -1,6 +1,6 @@
 package com.monday8am.nqueenspuzzle.game
 
-import com.monday8am.nqueenspuzzle.logic.NQueensLogic
+import com.monday8am.nqueenspuzzle.game.NQueensLogic
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 import kotlinx.coroutines.flow.MutableStateFlow
