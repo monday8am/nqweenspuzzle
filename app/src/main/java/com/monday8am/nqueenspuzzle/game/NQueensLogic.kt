@@ -1,10 +1,12 @@
-package com.monday8am.nqueenspuzzle.logic
+package com.monday8am.nqueenspuzzle.game
 
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
-import com.monday8am.nqueenspuzzle.models.CellState
 import com.monday8am.nqueenspuzzle.models.Position
 import kotlin.math.abs
 
+/**
+ * Pure game logic for the N-Queens puzzle.
+ * Contains only game rules - no presentation/UI concerns.
+ */
 object NQueensLogic {
     fun hasConflict(
         a: Position,
@@ -75,50 +77,5 @@ object NQueensLogic {
     ): Boolean {
         if (queens.size != boardSize) return false
         return findConflictingQueens(queens).isEmpty()
-    }
-
-    fun buildBoardRenderState(
-        boardSize: Int,
-        queens: Set<Position>,
-        selectedQueen: Position?,
-    ): BoardRenderState {
-        val conflictingQueens = findConflictingQueens(queens)
-        val attackedCells = selectedQueen?.let { getAttackedCells(it, boardSize) } ?: emptySet()
-        val elapsedTimeMs = System.currentTimeMillis()
-
-        val cells = mutableListOf<CellState>()
-        for (row in 0 until boardSize) {
-            for (col in 0 until boardSize) {
-                val position = Position(row, col)
-                val hasQueen = position in queens
-                val isConflicting = hasQueen && position in conflictingQueens
-                val isAttacked = position in attackedCells && !hasQueen
-                val isLightSquare = (row + col) % 2 == 0
-
-                cells.add(
-                    CellState(
-                        position = position,
-                        hasQueen = hasQueen,
-                        isConflicting = isConflicting,
-                        isAttacked = isAttacked,
-                        isLightSquare = isLightSquare,
-                        isSelected = position == selectedQueen,
-                    ),
-                )
-            }
-        }
-
-        return BoardRenderState(
-            boardSize = boardSize,
-            cells = cells,
-            queensRemaining = boardSize - queens.size,
-            isSolved = isSolved(queens, boardSize),
-            processingTime = System.currentTimeMillis() - elapsedTimeMs,
-        )
-    }
-
-    fun getSolution(): Set<Position> {
-        // TODO not implemented yet!
-        return emptySet()
     }
 }

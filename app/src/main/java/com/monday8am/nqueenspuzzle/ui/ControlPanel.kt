@@ -17,12 +17,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.monday8am.nqueenspuzzle.models.Difficulty
 
 @Composable
 internal fun ControlPanel(
     boardSize: Int,
+    difficulty: Difficulty,
     isSolved: Boolean,
     onBoardSizeSelected: (Int) -> Unit,
+    onDifficultySelected: (Difficulty) -> Unit,
     onResetClick: () -> Unit,
     verticalArrangement: Arrangement.Vertical = spacedBy(16.dp),
     modifier: Modifier = Modifier,
@@ -46,6 +49,11 @@ internal fun ControlPanel(
         BoardSizeSelector(
             boardSize = boardSize,
             onBoardSizeSelected = onBoardSizeSelected,
+        )
+
+        DifficultySelector(
+            difficulty = difficulty,
+            onDifficultySelected = onDifficultySelected,
         )
 
         Row(
@@ -74,8 +82,10 @@ private fun ControlPanelPreview() {
     MaterialTheme {
         ControlPanel(
             boardSize = 8,
+            difficulty = Difficulty.EASY,
             isSolved = false,
             onBoardSizeSelected = {},
+            onDifficultySelected = {},
             onResetClick = {},
             modifier = Modifier.padding(16.dp),
         )
@@ -88,8 +98,10 @@ private fun ControlPanelSolvedPreview() {
     MaterialTheme {
         ControlPanel(
             boardSize = 8,
+            difficulty = Difficulty.EASY,
             isSolved = true,
             onBoardSizeSelected = {},
+            onDifficultySelected = {},
             onResetClick = {},
             modifier = Modifier.padding(16.dp),
         )

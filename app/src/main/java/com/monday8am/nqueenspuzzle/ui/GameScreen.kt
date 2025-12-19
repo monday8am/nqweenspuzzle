@@ -19,10 +19,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.monday8am.nqueenspuzzle.GameAction
 import com.monday8am.nqueenspuzzle.GameViewModel
-import com.monday8am.nqueenspuzzle.logic.NQueensLogic
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
+import com.monday8am.nqueenspuzzle.UserAction
+import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 
 @Composable
@@ -34,9 +33,10 @@ fun GameScreen(
 
     GameScreenContent(
         state = state,
-        onBoardSizeSelected = { size -> viewModel.dispatch(GameAction.SetBoardSize(size)) },
-        onCellTap = { position -> viewModel.dispatch(GameAction.TapCell(position)) },
-        onResetClick = { viewModel.dispatch(GameAction.Reset) },
+        onBoardSizeSelected = { size -> viewModel.dispatch(UserAction.SetBoardSize(size)) },
+        onDifficultySelected = { difficulty -> viewModel.dispatch(UserAction.SetDifficulty(difficulty)) },
+        onCellTap = { position -> viewModel.dispatch(UserAction.TapCell(position)) },
+        onResetClick = { viewModel.dispatch(UserAction.Reset) },
         modifier = modifier,
     )
 }
@@ -45,6 +45,7 @@ fun GameScreen(
 private fun GameScreenContent(
     state: BoardRenderState,
     onBoardSizeSelected: (Int) -> Unit,
+    onDifficultySelected: (Difficulty) -> Unit,
     onCellTap: (Position) -> Unit,
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -56,6 +57,7 @@ private fun GameScreenContent(
         LandscapeLayout(
             state = state,
             onBoardSizeSelected = onBoardSizeSelected,
+            onDifficultySelected = onDifficultySelected,
             onCellTap = onCellTap,
             onResetClick = onResetClick,
             modifier = modifier,
@@ -64,6 +66,7 @@ private fun GameScreenContent(
         PortraitLayout(
             state = state,
             onBoardSizeSelected = onBoardSizeSelected,
+            onDifficultySelected = onDifficultySelected,
             onCellTap = onCellTap,
             onResetClick = onResetClick,
             modifier = modifier,
@@ -75,6 +78,7 @@ private fun GameScreenContent(
 private fun PortraitLayout(
     state: BoardRenderState,
     onBoardSizeSelected: (Int) -> Unit,
+    onDifficultySelected: (Difficulty) -> Unit,
     onCellTap: (Position) -> Unit,
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -104,8 +108,10 @@ private fun PortraitLayout(
 
         ControlPanel(
             boardSize = state.boardSize,
+            difficulty = state.difficulty,
             isSolved = state.isSolved,
             onBoardSizeSelected = onBoardSizeSelected,
+            onDifficultySelected = onDifficultySelected,
             onResetClick = onResetClick,
         )
     }
@@ -115,6 +121,7 @@ private fun PortraitLayout(
 private fun LandscapeLayout(
     state: BoardRenderState,
     onBoardSizeSelected: (Int) -> Unit,
+    onDifficultySelected: (Difficulty) -> Unit,
     onCellTap: (Position) -> Unit,
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -147,8 +154,10 @@ private fun LandscapeLayout(
             // Right section: Controls
             ControlPanel(
                 boardSize = state.boardSize,
+                difficulty = state.difficulty,
                 isSolved = state.isSolved,
                 onBoardSizeSelected = onBoardSizeSelected,
+                onDifficultySelected = onDifficultySelected,
                 onResetClick = onResetClick,
                 modifier = Modifier,
             )
@@ -160,13 +169,9 @@ private fun LandscapeLayout(
 @Composable
 private fun GameScreenContentPreview() {
     GameScreenContent(
-        state =
-            NQueensLogic.buildBoardRenderState(
-                boardSize = 8,
-                queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
-                selectedQueen = Position(0, 0),
-            ),
+        state = sampleBoardRenderState,
         onBoardSizeSelected = { },
+        onDifficultySelected = { },
         onCellTap = { },
         onResetClick = { },
     )
@@ -180,13 +185,9 @@ private fun GameScreenContentPreview() {
 @Composable
 private fun GameScreenContentLandscapePreview() {
     GameScreenContent(
-        state =
-            NQueensLogic.buildBoardRenderState(
-                boardSize = 8,
-                queens = setOf(Position(0, 0), Position(1, 2), Position(0, 4)),
-                selectedQueen = Position(0, 0),
-            ),
+        state = sampleBoardRenderState,
         onBoardSizeSelected = { },
+        onDifficultySelected = { },
         onCellTap = { },
         onResetClick = { },
     )

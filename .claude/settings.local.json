@@ -5,7 +5,8 @@
       "Bash(./gradlew :app:testDebugUnitTest:*)",
       "Bash(./gradlew assembleDebug:*)",
       "Bash(cat:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(./gradlew:*)"
     ]
   }
 }

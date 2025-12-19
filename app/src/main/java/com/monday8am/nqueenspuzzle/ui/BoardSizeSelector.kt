@@ -5,6 +5,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
 
@@ -15,9 +16,13 @@ private const val BOARD_MAX_SIZE = 12f
 internal fun BoardSizeSelector(
     boardSize: Int,
     onBoardSizeSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     // Board size selector
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier,
+    ) {
         val boardSizeLabel = "Board size: ${boardSize}x$boardSize"
         Text(boardSizeLabel)
         Slider(
