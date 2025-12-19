@@ -11,7 +11,6 @@ class NQueensGame(
     initialConfig: GameConfig = GameConfig(),
     private val logic: NQueensLogic = NQueensLogic,
 ) {
-
     val config: GameConfig
         get() = _state.value.config
 
@@ -51,7 +50,10 @@ class NQueensGame(
         }
     }
 
-    private fun handleCellTap(state: NQueensState, position: Position): NQueensState {
+    private fun handleCellTap(
+        state: NQueensState,
+        position: Position,
+    ): NQueensState {
         val newQueens: Set<Position>
         val newSelected: Position?
 
@@ -61,56 +63,72 @@ class NQueensGame(
                 newQueens = state.queens - position
                 newSelected = if (position == state.selectedQueen) null else state.selectedQueen
             }
+
             // Case 2: Tap on an empty cell to move the selected queen.
             // Only if it's in conflict with another queen.
             state.selectedQueen != null && logic.findConflictingQueens(state.queens).contains(state.selectedQueen) -> {
                 newQueens = state.queens - state.selectedQueen + position
                 newSelected = position
             }
+
             // Case 3: Tap on an empty cell to add a new queen (if board is not full).
             state.queens.size < state.config.boardSize -> {
                 newQueens = state.queens + position
                 newSelected = position
             }
+
             // Case 4: Board is full and no queen is selected -> do nothing.
-            else -> return state
-        }
-
-        // Start the timer on the very first move.
-        val startTime = if (state.queens.isEmpty() && newQueens.isNotEmpty()) {
-            System.currentTimeMillis()
-        } else {
-            state.gameStartTime
-        }
-
-        val isSolved = logic.isSolved(newQueens, config.boardSize)
-        val endTime = if (isSolved) {
-            System.currentTimeMillis()
-        } else {
-            state.gameEndTime
-        }
-
-        // Calculate game-logic based visibility
-        val allConflicts = logic.findConflictingQueens(newQueens)
-        val visibleConflicts = when (state.config.difficulty) {
-            Difficulty.EASY, Difficulty.MEDIUM -> allConflicts
-            Difficulty.HARD -> {
-                // Only show conflict on selected queen if it's conflicting
-                if (newSelected != null && newSelected in allConflicts) {
-                    setOf(newSelected)
-                } else {
-                    emptySet()
-                }
+            else -> {
+                return state
             }
         }
 
-        val visibleAttacks = when (state.config.difficulty) {
-            Difficulty.EASY -> newSelected?.let {
-                logic.getAttackedCells(it, state.config.boardSize)
-            } ?: emptySet()
+        // Start the timer on the very first move.
+        val startTime =
+            if (state.queens.isEmpty() && newQueens.isNotEmpty()) {
+                System.currentTimeMillis()
+            } else {
+                state.gameStartTime
+            }
 
-            Difficulty.MEDIUM, Difficulty.HARD -> emptySet()
-        }
+        val isSolved = logic.isSolved(newQueens, config.boardSize)
+        val endTime =
+            if (isSolved) {
+                System.currentTimeMillis()
+            } else {
+                state.gameEndTime
+            }
+
+        // Calculate game-logic based visibility
+        val allConflicts = logic.findConflictingQueens(newQueens)
+        val visibleConflicts =
+            when (state.config.difficulty) {
+                Difficulty.EASY, Difficulty.MEDIUM -> {
+                    allConflicts
+                }
+
+                Difficulty.HARD -> {
+                    // Only show conflict on selected queen if it's conflicting
+                    if (newSelected != null && newSelected in allConflicts) {
+                        setOf(newSelected)
+                    } else {
+                        emptySet()
+                    }
+                }
+            }
+
+        val visibleAttacks =
+            when (state.config.difficulty) {
+                Difficulty.EASY -> {
+                    newSelected?.let {
+                        logic.getAttackedCells(it, state.config.boardSize)
+                    } ?: emptySet()
+                }
+
+                Difficulty.MEDIUM, Difficulty.HARD -> {
+                    emptySet()
+                }
+            }
 
         return state.copy(
             queens = newQueens,

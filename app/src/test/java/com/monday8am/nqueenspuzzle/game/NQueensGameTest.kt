@@ -10,7 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NQueensGameTest {
-
     // ==================== Initialization ====================
 
     @Test
@@ -164,7 +163,11 @@ class NQueensGameTest {
 
         // 2. Check Attacked Cells (requires selection)
         game.userMove(p1) // Select p1
-        assertTrue("EASY should show attacked cells", game.state.value.visibleAttackedCells.isNotEmpty())
+        assertTrue(
+            "EASY should show attacked cells",
+            game.state.value.visibleAttackedCells
+                .isNotEmpty(),
+        )
     }
 
     @Test
@@ -173,7 +176,11 @@ class NQueensGameTest {
 
         game.userMove(pos(0, 0)) // Place and select
 
-        assertTrue("MEDIUM should NOT show attacked cells", game.state.value.visibleAttackedCells.isEmpty())
+        assertTrue(
+            "MEDIUM should NOT show attacked cells",
+            game.state.value.visibleAttackedCells
+                .isEmpty(),
+        )
         // Note: Logic for MEDIUM conflicts implies it behaves like EASY regarding conflicts,
         // or HARD regarding attacked cells. Based on original test, it just hides attacked cells.
     }
@@ -195,7 +202,10 @@ class NQueensGameTest {
     // ==================== Helpers ====================
 
     // Short helper to create Positions
-    private fun pos(r: Int, c: Int) = Position(r, c)
+    private fun pos(
+        r: Int,
+        c: Int,
+    ) = Position(r, c)
 
     // Helper to simulate multiple moves
     private fun NQueensGame.placeQueens(vararg positions: Position) {
@@ -204,11 +214,12 @@ class NQueensGameTest {
 
     companion object {
         // Solution for 4x4 board: (0,1), (1,3), (2,0), (3,2)
-        private val SOLVED_4X4_MOVES = arrayOf(
-            Position(0, 1),
-            Position(1, 3),
-            Position(2, 0),
-            Position(3, 2)
-        )
+        private val SOLVED_4X4_MOVES =
+            arrayOf(
+                Position(0, 1),
+                Position(1, 3),
+                Position(2, 0),
+                Position(3, 2),
+            )
     }
 }
