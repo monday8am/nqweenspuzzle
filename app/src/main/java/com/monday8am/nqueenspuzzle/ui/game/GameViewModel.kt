@@ -2,8 +2,11 @@ package com.monday8am.nqueenspuzzle.ui.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.monday8am.nqueenspuzzle.audio.SoundEffect
+import com.monday8am.nqueenspuzzle.audio.SoundEffectManager
 import com.monday8am.nqueenspuzzle.logic.NQueensGame
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
+import com.monday8am.nqueenspuzzle.logic.models.GameAction
 import com.monday8am.nqueenspuzzle.logic.models.GameConfig
 import com.monday8am.nqueenspuzzle.logic.models.Position
 import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
@@ -40,10 +43,35 @@ sealed class UserAction {
  */
 class GameViewModel(
     private val game: NQueensGame = NQueensGame(initialConfig = GameConfig()),
+    private val soundEffectManager: SoundEffectManager? = null,
 ) : ViewModel() {
     val renderState: StateFlow<BoardRenderState> =
         game.state
             .onEach { state ->
+                // Side effects: Play sounds based on game action
+                when (val action = state.lastAction) {
+                    is GameAction.QueenAdded -> {
+                        if (action.causedConflict) {
+                            soundEffectManager?.play(SoundEffect.QUEEN_CONFLICT)
+                        } else {
+                            soundEffectManager?.play(SoundEffect.QUEEN_PLACED)
+                        }
+                    }
+                    is GameAction.QueenMoved -> {
+                        if (action.causedConflict) {
+                            soundEffectManager?.play(SoundEffect.QUEEN_CONFLICT)
+                        } else {
+                            soundEffectManager?.play(SoundEffect.QUEEN_PLACED)
+                        }
+                    }
+                    is GameAction.GameWon -> {
+                        soundEffectManager?.play(SoundEffect.GAME_WON)
+                    }
+                    is GameAction.QueenRemoved -> { /* No sound */ }
+                    is GameAction.GameReset -> { /* No sound */ }
+                    null -> { /* Initial state */ }
+                }
+
                 // Side effects: Check for win condition
                 if (state.isSolved) {
                     triggerWinNavigation(state.config.boardSize, state.elapsedTime)
@@ -77,7 +105,6 @@ class GameViewModel(
                         val hasQueen = position in state.queens
                         val isConflicting = hasQueen && position in state.visibleConflicts
                         val isAttacked = position in state.visibleAttackedCells && !hasQueen
-                        val isLightSquare = (row + col) % 2 == 0
 
                         add(
                             CellState(
@@ -85,7 +112,6 @@ class GameViewModel(
                                 hasQueen = hasQueen,
                                 isConflicting = isConflicting,
                                 isAttacked = isAttacked,
-                                isLightSquare = isLightSquare,
                                 isSelected = position == state.selectedQueen,
                             ),
                         )

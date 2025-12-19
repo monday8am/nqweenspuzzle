@@ -7,9 +7,11 @@ data class CellState(
     val hasQueen: Boolean,
     val isConflicting: Boolean,
     val isAttacked: Boolean,
-    val isLightSquare: Boolean,
     val isSelected: Boolean,
 ) {
+    val isLightSquare: Boolean
+        get() = (position.row + position.col) % 2 == 0
+
     val isEmptyAndAttacked = !hasQueen && isAttacked
     val hasQueenAttacked = hasQueen && isConflicting && !isSelected
     val hasQueenAttacking = isConflicting && isSelected
