@@ -52,6 +52,7 @@ class GameViewModel(
     }
 
     private fun buildBoardRenderState(state: NQueensGame.NQueensState): BoardRenderState {
+        val startTime = System.currentTimeMillis()
         val cells =
             buildList {
                 for (row in 0 until state.config.boardSize) {
@@ -82,7 +83,7 @@ class GameViewModel(
             cells = cells,
             queensRemaining = state.config.boardSize - state.queens.size,
             isSolved = state.isSolved,
-            calculationTime = state.calculationTime,
+            calculationTime = state.calculationTime + (System.currentTimeMillis() - startTime),
         )
     }
 

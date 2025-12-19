@@ -6,14 +6,12 @@ import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -46,26 +44,64 @@ fun GameBoard(
             text = "\u265B Queens remaining: ${state.queensRemaining}",
             style = MaterialTheme.typography.titleMedium,
         )
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(state.boardSize),
-            modifier =
-                Modifier
-                    .aspectRatio(1f)
-                    .border(2.dp, Color.Black),
-        ) {
-            items(state.cells) { cell ->
-                Cell(
-                    cell = cell,
-                    boardSize = state.boardSize,
-                    onClick = { onCellTap(cell.position) },
-                )
-            }
-        }
+
+        Board(
+            cells = state.cells,
+            boardSize = state.boardSize,
+            onCellTap = onCellTap,
+        )
+
         Text(
             text = "Calculation time: ${state.calculationTime}ms",
             fontSize = 12.sp,
             color = Color.DarkGray,
         )
+    }
+}
+
+@Composable
+private fun Board(
+    cells: List<CellState>,
+    boardSize: Int,
+    onCellTap: (Position) -> Unit,
+) {
+    // Custom Layout for Fixed Grid
+    Layout(
+        content = {
+            cells.forEach { cell ->
+                Cell(
+                    cell = cell,
+                    boardSize = boardSize,
+                    onClick = { onCellTap(cell.position) },
+                )
+            }
+        },
+        modifier =
+            Modifier
+                .aspectRatio(1f)
+                .border(2.dp, Color.Black),
+    ) { measurables, constraints ->
+        val boardSize = boardSize
+        val cellWidth = constraints.maxWidth / boardSize
+        // Ensure strict squareness if needed, or just use width for both dimenions if it's a square board
+        val cellConstraints =
+            androidx.compose.ui.unit.Constraints.fixed(
+                width = cellWidth,
+                height = cellWidth,
+            )
+
+        val placeables = measurables.map { it.measure(cellConstraints) }
+
+        layout(constraints.maxWidth, constraints.maxWidth) {
+            placeables.forEachIndexed { index, placeable ->
+                val row = index / boardSize
+                val col = index % boardSize
+                placeable.placeRelative(
+                    x = col * cellWidth,
+                    y = row * cellWidth,
+                )
+            }
+        }
     }
 }
 

@@ -10,7 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.roundToInt
 
 private const val BOARD_MIN_SIZE = 4f
-private const val BOARD_MAX_SIZE = 12f
+private const val BOARD_MAX_SIZE = 24f
 
 @Composable
 internal fun BoardSizeSelector(

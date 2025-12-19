@@ -5,6 +5,6 @@ data class GameConfig(
     val difficulty: Difficulty = Difficulty.EASY,
 ) {
     init {
-        require(boardSize in 4..12) { "Board size must be between 4 and 12" }
+        require(boardSize in 4..25) { "Board size must be between 4 and 25" }
     }
 }
