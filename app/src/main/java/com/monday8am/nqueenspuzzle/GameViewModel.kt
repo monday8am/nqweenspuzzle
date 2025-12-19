@@ -28,14 +28,11 @@ class GameViewModel : ViewModel() {
 
     val renderState: StateFlow<BoardRenderState> = game.state
         .onEach { state ->
-            if (state.gameEndTime != null && state.gameStartTime != null) {
-                // Only trigger if we have a valid elapsed time
-                triggerWinNavigation(state.gameEndTime - state.gameStartTime)
+            if (state.isSolved) {
+                triggerWinNavigation(state.elapsedTime)
             }
         }
         .map { state ->
-            val startTime = System.currentTimeMillis()
-            // Build cell states
             val cells = buildList {
                 for (row in 0 until state.config.boardSize) {
                     for (col in 0 until state.config.boardSize) {
@@ -65,7 +62,7 @@ class GameViewModel : ViewModel() {
                 cells = cells,
                 queensRemaining = state.config.boardSize - state.queens.size,
                 isSolved = state.isSolved,
-                processingTime = System.currentTimeMillis() - startTime,
+                calculationTime = state.calculationTime,
             )
         }
         .stateIn(
@@ -93,7 +90,7 @@ class GameViewModel : ViewModel() {
             cells = emptyList(),
             queensRemaining = 8,
             isSolved = false,
-            processingTime = 0L,
+            calculationTime = 0L,
         )
     }
 

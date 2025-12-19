@@ -23,8 +23,14 @@ class NQueensGame(
         val gameEndTime: Long? = null,
         val visibleConflicts: Set<Position> = emptySet(),
         val visibleAttackedCells: Set<Position> = emptySet(),
-        val isSolved: Boolean = false
-    )
+        val calculationTime: Long = 0,
+    ) {
+        val isSolved: Boolean
+            get() = gameStartTime != null && gameEndTime != null
+
+        val elapsedTime: Long
+            get() = if (isSolved) (gameEndTime!!) - (gameStartTime!!) else 0L
+    }
 
     private val _state = MutableStateFlow(NQueensState(config = initialConfig))
     val state: StateFlow<NQueensState> = _state
@@ -39,7 +45,9 @@ class NQueensGame(
         if (current.gameEndTime != null) return
 
         _state.update {
+            val startTime = System.currentTimeMillis()
             handleCellTap(current, position)
+                .copy(calculationTime = System.currentTimeMillis() - startTime)
         }
     }
 
@@ -111,7 +119,6 @@ class NQueensGame(
             gameEndTime = endTime,
             visibleConflicts = visibleConflicts,
             visibleAttackedCells = visibleAttacks,
-            isSolved = isSolved
         )
     }
 }

@@ -99,5 +99,5 @@ internal val sampleBoardRenderState = BoardRenderState(
     cells = cells,
     queensRemaining = boardSize - queenPositions.size,
     isSolved = false,
-    processingTime = 0L,
+    calculationTime = 0L,
 )

@@ -64,7 +64,7 @@ fun GameBoard(
             }
         }
         Text(
-            text = "Calculation time: ${state.processingTime}ms",
+            text = "Calculation time: ${state.calculationTime}ms",
             fontSize = 12.sp,
             color = Color.DarkGray,
         )
@@ -136,7 +136,7 @@ private fun GameBoardPreviewInProgress() {
             cells = cells,
             queensRemaining = 5,
             isSolved = false,
-            processingTime = 45L,
+            calculationTime = 45L,
         )
 
     GameBoard(
