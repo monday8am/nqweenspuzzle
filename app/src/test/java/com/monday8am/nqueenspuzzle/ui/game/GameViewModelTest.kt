@@ -1,8 +1,8 @@
 package com.monday8am.nqueenspuzzle.ui.game
 
-import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
+import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

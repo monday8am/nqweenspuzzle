@@ -7,10 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.monday8am.nqueenspuzzle.logic.models.BOARD_MAX_SIZE
+import com.monday8am.nqueenspuzzle.logic.models.BOARD_MIN_SIZE
 import kotlin.math.roundToInt
-
-private const val BOARD_MIN_SIZE = 4f
-private const val BOARD_MAX_SIZE = 12f
 
 @Composable
 internal fun BoardSizeSelector(
@@ -28,8 +27,8 @@ internal fun BoardSizeSelector(
         Slider(
             value = boardSize.toFloat(),
             onValueChange = { onBoardSizeSelected(it.roundToInt()) },
-            valueRange = BOARD_MIN_SIZE..BOARD_MAX_SIZE,
-            steps = (BOARD_MAX_SIZE - BOARD_MIN_SIZE).toInt() - 1,
+            valueRange = BOARD_MIN_SIZE.toFloat()..BOARD_MAX_SIZE.toFloat(),
+            steps = (BOARD_MAX_SIZE - BOARD_MIN_SIZE) - 1,
         )
     }
 }
