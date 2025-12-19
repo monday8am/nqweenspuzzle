@@ -22,8 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
-import com.monday8am.nqueenspuzzle.models.CellState
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 
@@ -64,7 +62,7 @@ fun GameBoard(
             }
         }
         Text(
-            text = "Calculation time: ${state.processingTime}ms",
+            text = "Calculation time: ${state.calculationTime}ms",
             fontSize = 12.sp,
             color = Color.DarkGray,
         )
@@ -136,7 +134,7 @@ private fun GameBoardPreviewInProgress() {
             cells = cells,
             queensRemaining = 5,
             isSolved = false,
-            processingTime = 45L,
+            calculationTime = 45L,
         )
 
     GameBoard(
