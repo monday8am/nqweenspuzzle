@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
@@ -83,9 +84,9 @@ private fun Board(
     ) { measurables, constraints ->
         val boardSize = boardSize
         val cellWidth = constraints.maxWidth / boardSize
-        // Ensure strict squareness if needed, or just use width for both dimenions if it's a square board
+        // Ensure strict squareness if needed, or just use width for both dimensions if it's a square board
         val cellConstraints =
-            androidx.compose.ui.unit.Constraints.fixed(
+            Constraints.fixed(
                 width = cellWidth,
                 height = cellWidth,
             )
