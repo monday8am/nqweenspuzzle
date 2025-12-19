@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "N-Queens Puzzle"
 include(":app")
+include(":logic")
+include(":data")

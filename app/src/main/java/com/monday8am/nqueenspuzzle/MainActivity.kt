@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
 import com.monday8am.nqueenspuzzle.navigation.NQueensNavHost
+import com.monday8am.nqueenspuzzle.ui.game.GameViewModel
 import com.monday8am.nqueenspuzzle.ui.theme.NQueensPuzzleTheme
 
 class MainActivity : ComponentActivity() {

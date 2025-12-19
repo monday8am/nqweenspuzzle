@@ -14,12 +14,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.monday8am.nqueenspuzzle.GameViewModel
-import com.monday8am.nqueenspuzzle.UserAction
+import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
-import com.monday8am.nqueenspuzzle.ui.GameScreen
-import com.monday8am.nqueenspuzzle.ui.ResultsScreen
-import com.monday8am.nqueenspuzzle.ui.ResultsViewModel
+import com.monday8am.nqueenspuzzle.ui.game.GameScreen
+import com.monday8am.nqueenspuzzle.ui.game.GameViewModel
+import com.monday8am.nqueenspuzzle.ui.results.ResultsScreen
+import com.monday8am.nqueenspuzzle.ui.results.ResultsViewModel
 
 @Composable
 fun NQueensNavHost(
