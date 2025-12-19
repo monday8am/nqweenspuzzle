@@ -18,9 +18,7 @@ class ResultsViewModel(
     val scores: StateFlow<List<ScoreEntry>> = _scores.asStateFlow()
 
     init {
-        // Save the score in background
         saveScore()
-        // Load scores for this board size
         loadScores()
     }
 
