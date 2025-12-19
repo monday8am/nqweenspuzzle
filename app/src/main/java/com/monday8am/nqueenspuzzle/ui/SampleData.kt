@@ -1,7 +1,7 @@
 package com.monday8am.nqueenspuzzle.ui
 
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
-import com.monday8am.nqueenspuzzle.models.CellState
+import com.monday8am.nqueenspuzzle.ui.BoardRenderState
+import com.monday8am.nqueenspuzzle.ui.CellState
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 

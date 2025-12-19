@@ -19,9 +19,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.monday8am.nqueenspuzzle.UserAction
 import com.monday8am.nqueenspuzzle.GameViewModel
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
+import com.monday8am.nqueenspuzzle.UserAction
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
 

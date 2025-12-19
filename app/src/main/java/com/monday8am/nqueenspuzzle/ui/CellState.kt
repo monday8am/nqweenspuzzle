@@ -1,4 +1,6 @@
-package com.monday8am.nqueenspuzzle.models
+package com.monday8am.nqueenspuzzle.ui
+
+import com.monday8am.nqueenspuzzle.models.Position
 
 data class CellState(
     val position: Position,
