@@ -1,4 +1,4 @@
-package com.monday8am.nqueenspuzzle.ui.game
+package com.monday8am.nqueenspuzzle.ui.game.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
+import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
+import com.monday8am.nqueenspuzzle.ui.game.CellState
 
 private val LightSquareColor = Color(0xFFebecd0)
 private val DarkSquareColor = Color(0xFF739552)

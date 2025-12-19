@@ -1,4 +1,4 @@
-package com.monday8am.nqueenspuzzle.ui.game
+package com.monday8am.nqueenspuzzle.ui.game.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Slider

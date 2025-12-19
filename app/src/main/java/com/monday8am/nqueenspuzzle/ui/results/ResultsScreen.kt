@@ -1,33 +1,33 @@
 package com.monday8am.nqueenspuzzle.ui.results
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.monday8am.nqueenspuzzle.data.ScoreEntry
 import com.monday8am.nqueenspuzzle.ui.theme.NQueensPuzzleTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun ResultsScreen(
@@ -35,7 +35,7 @@ fun ResultsScreen(
     onNewGameClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scores by viewModel.scores.collectAsState()
+    val scores by viewModel.scores.collectAsStateWithLifecycle()
 
     ResultsScreenContent(
         boardSize = viewModel.boardSize,
@@ -54,23 +54,137 @@ private fun ResultsScreenContent(
     onNewGameClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val contentPadding = PaddingValues(24.dp)
+
+        if (isLandscape) {
+            LandscapeLayout(
+                boardSize = boardSize,
+                elapsedSeconds = elapsedSeconds,
+                previousScores = previousScores,
+                onNewGameClick = onNewGameClick,
+                contentPadding = contentPadding,
+            )
+        } else {
+            PortraitLayout(
+                boardSize = boardSize,
+                elapsedSeconds = elapsedSeconds,
+                previousScores = previousScores,
+                onNewGameClick = onNewGameClick,
+                contentPadding = contentPadding,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PortraitLayout(
+    boardSize: Int,
+    elapsedSeconds: Long,
+    previousScores: List<ScoreEntry>,
+    onNewGameClick: () -> Unit,
+    contentPadding: PaddingValues, // Receive padding
+) {
     Column(
         modifier =
-            modifier
+            Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(contentPadding),
+        // Apply padding here
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        // Title
+        CompletionCard(
+            boardSize = boardSize,
+            elapsedSeconds = elapsedSeconds,
+        )
+
+        Box(modifier = Modifier.weight(1f)) {
+            ScoreList(
+                boardSize = boardSize,
+                previousScores = previousScores,
+            )
+        }
+
+        NewGameButton(
+            onNewGameClick = onNewGameClick,
+        )
+    }
+}
+
+@Composable
+private fun LandscapeLayout(
+    boardSize: Int,
+    elapsedSeconds: Long,
+    previousScores: List<ScoreEntry>,
+    onNewGameClick: () -> Unit,
+    contentPadding: PaddingValues,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+        verticalAlignment = Alignment.CenterVertically, // Center content vertically
+    ) {
+        CompletionCard(
+            boardSize = boardSize,
+            elapsedSeconds = elapsedSeconds,
+            alignment = Alignment.Start,
+            modifier =
+                Modifier
+                    .weight(1f),
+            // Removed fillMaxHeight so the card is only as tall as it needs to be
+        )
+
+        // Right block
+        Column(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // Same weight optimization for Landscape
+            Box(modifier = Modifier.weight(1f)) {
+                ScoreList(
+                    boardSize = boardSize,
+                    previousScores = previousScores,
+                )
+            }
+
+            NewGameButton(
+                onNewGameClick = onNewGameClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompletionCard(
+    boardSize: Int,
+    elapsedSeconds: Long,
+    modifier: Modifier = Modifier,
+    alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = alignment,
+        modifier = modifier,
+    ) {
         Text(
             text = "Puzzle Solved!",
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
         )
 
-        // Current completion card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors =
@@ -87,6 +201,7 @@ private fun ResultsScreenContent(
                     text = "Board Size: ${boardSize}x$boardSize",
                     style = MaterialTheme.typography.titleLarge,
                 )
+                // Assuming formatTime is available globally or imported
                 Text(
                     text = "Time: ${formatTime(elapsedSeconds)}",
                     style = MaterialTheme.typography.headlineMedium,
@@ -94,97 +209,54 @@ private fun ResultsScreenContent(
                 )
             }
         }
-
-        // Previous scores section
-        if (previousScores.isNotEmpty()) {
-            Text(
-                text = "Previous Times (${boardSize}x$boardSize)",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-
-            LazyColumn(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(previousScores.take(10)) { score ->
-                    ScoreItem(score = score)
-                }
-            }
-        } else {
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
-        // New game button
-        Button(
-            onClick = onNewGameClick,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-        ) {
-            Text(
-                text = "New Game",
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
     }
 }
 
 @Composable
-private fun ScoreItem(
-    score: ScoreEntry,
+private fun NewGameButton(
+    onNewGameClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            ),
+    // New game button
+    Button(
+        onClick = onNewGameClick,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(56.dp),
     ) {
-        Row(
-            modifier =
-                Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = formatTime(score.elapsedSeconds),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                text = formatDate(score.timestamp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Text(
+            text = "New Game",
+            style = MaterialTheme.typography.titleMedium,
+        )
     }
 }
 
-private fun formatTime(seconds: Long): String =
-    if (seconds < 60) {
-        "$seconds seconds"
-    } else {
-        val minutes = seconds / 60
-        val secs = seconds % 60
-        "$minutes:${secs.toString().padStart(2, '0')}"
-    }
-
-private fun formatDate(timestamp: Long): String {
-    val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    return formatter.format(Date(timestamp))
-}
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Portrait Preview")
 @Composable
 private fun ResultsScreenPreview() {
+    NQueensPuzzleTheme {
+        ResultsScreenContent(
+            boardSize = 8,
+            elapsedSeconds = 125,
+            previousScores =
+                listOf(
+                    ScoreEntry(1, 8, 100, System.currentTimeMillis()),
+                    ScoreEntry(2, 8, 145, System.currentTimeMillis() - 86400000),
+                    ScoreEntry(3, 8, 200, System.currentTimeMillis() - 172800000),
+                ),
+            onNewGameClick = {},
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "Landscape Preview",
+    device = "spec:width=800dp,height=360dp,orientation=landscape",
+)
+@Composable
+private fun ResultsScreenLandscapePreview() {
     NQueensPuzzleTheme {
         ResultsScreenContent(
             boardSize = 8,

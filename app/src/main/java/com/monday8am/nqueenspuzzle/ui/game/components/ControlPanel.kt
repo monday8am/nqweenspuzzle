@@ -1,4 +1,4 @@
-package com.monday8am.nqueenspuzzle.ui.game
+package com.monday8am.nqueenspuzzle.ui.game.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,8 +26,8 @@ internal fun ControlPanel(
     onBoardSizeSelected: (Int) -> Unit,
     onDifficultySelected: (Difficulty) -> Unit,
     onResetClick: () -> Unit,
-    verticalArrangement: Arrangement.Vertical = spacedBy(16.dp),
     modifier: Modifier = Modifier,
+    verticalArrangement: Arrangement.Vertical = spacedBy(16.dp),
 ) {
     Column(
         verticalArrangement = verticalArrangement,
@@ -46,33 +45,28 @@ internal fun ControlPanel(
             )
         }
 
-        BoardSizeSelector(
-            boardSize = boardSize,
-            onBoardSizeSelected = onBoardSizeSelected,
-        )
-
-        DifficultySelector(
-            difficulty = difficulty,
-            onDifficultySelected = onDifficultySelected,
-        )
-
         Row(
-            horizontalArrangement = spacedBy(8.dp),
+            horizontalArrangement = spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Button(
                 onClick = onResetClick,
-                modifier = Modifier.width(120.dp),
+                modifier = Modifier.weight(0.44f),
             ) {
                 Text("Reset")
             }
-            Button(
-                onClick = onResetClick,
-                modifier = Modifier.width(120.dp),
-            ) {
-                Text("Theme")
-            }
+
+            DifficultySelector(
+                difficulty = difficulty,
+                onDifficultySelected = onDifficultySelected,
+                modifier = Modifier.weight(0.5f),
+            )
         }
+
+        BoardSizeSelector(
+            boardSize = boardSize,
+            onBoardSizeSelected = onBoardSizeSelected,
+        )
     }
 }
 
