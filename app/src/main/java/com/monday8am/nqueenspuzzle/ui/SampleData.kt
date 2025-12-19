@@ -2,8 +2,6 @@ package com.monday8am.nqueenspuzzle.ui
 
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
-import com.monday8am.nqueenspuzzle.ui.BoardRenderState
-import com.monday8am.nqueenspuzzle.ui.CellState
 
 private const val boardSize = 8
 private val queenPositions = listOf(Position(0, 0), Position(1, 2), Position(0, 4)) // (0,0) and (0,4) conflict

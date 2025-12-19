@@ -29,8 +29,9 @@ class GameViewModel(
     val renderState: StateFlow<BoardRenderState> =
         game.state
             .onEach { state ->
+                // Side effects: Check for win condition
                 if (state.isSolved) {
-                    triggerWinNavigation(state.elapsedTime)
+                    triggerWinNavigation(state.config.boardSize, state.elapsedTime)
                 }
             }.map { state -> buildBoardRenderState(state) }
             .stateIn(
@@ -45,8 +46,8 @@ class GameViewModel(
     fun dispatch(action: UserAction) {
         when (action) {
             is UserAction.TapCell -> game.userMove(action.position)
-            is UserAction.SetBoardSize -> game.restart(game.config.copy(boardSize = action.size))
-            is UserAction.SetDifficulty -> game.restart(game.config.copy(difficulty = action.difficulty))
+            is UserAction.SetBoardSize -> game.restart(newConfig = game.config.copy(boardSize = action.size))
+            is UserAction.SetDifficulty -> game.restart(newConfig = game.config.copy(difficulty = action.difficulty))
             is UserAction.Reset -> game.restart()
         }
     }
@@ -88,24 +89,21 @@ class GameViewModel(
 
     private fun createEmptyBoardRenderState(): BoardRenderState =
         BoardRenderState(
-            boardSize = 8,
+            boardSize = game.config.boardSize,
             difficulty = Difficulty.EASY,
             cells = emptyList(),
             queensRemaining = 8,
             isSolved = false,
-            calculationTime = 0L,
         )
 
-    private fun triggerWinNavigation(gameTimeMillis: Long) {
-        val elapsedSeconds = gameTimeMillis / 1000
-
+    private fun triggerWinNavigation(boardSize: Int, gameTimeMillis: Long) {
         viewModelScope.launch {
             _navigationEvent.send(
                 NavigationEvent.NavigateToResults(
                     route =
                         ResultsRoute(
-                            boardSize = game.config.boardSize,
-                            elapsedSeconds = elapsedSeconds,
+                            boardSize = boardSize,
+                            elapsedSeconds = gameTimeMillis / 1000,
                         ),
                 ),
             )
