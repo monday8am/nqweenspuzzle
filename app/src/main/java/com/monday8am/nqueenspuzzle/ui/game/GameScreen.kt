@@ -19,9 +19,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
+import com.monday8am.nqueenspuzzle.ui.game.UserAction
 
 @Composable
 fun GameScreen(

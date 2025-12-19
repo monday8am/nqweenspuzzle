@@ -2,13 +2,13 @@ package com.monday8am.nqueenspuzzle.ui.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.monday8am.nqueenspuzzle.ui.game.UserAction
-import com.monday8am.nqueenspuzzle.logic.models.GameConfig
 import com.monday8am.nqueenspuzzle.logic.NQueensGame
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
+import com.monday8am.nqueenspuzzle.logic.models.GameConfig
 import com.monday8am.nqueenspuzzle.logic.models.Position
 import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
 import com.monday8am.nqueenspuzzle.navigation.ResultsRoute
+import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -96,7 +96,10 @@ class GameViewModel(
             isSolved = false,
         )
 
-    private fun triggerWinNavigation(boardSize: Int, gameTimeMillis: Long) {
+    private fun triggerWinNavigation(
+        boardSize: Int,
+        gameTimeMillis: Long,
+    ) {
         viewModelScope.launch {
             _navigationEvent.send(
                 NavigationEvent.NavigateToResults(
