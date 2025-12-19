@@ -1,13 +1,10 @@
 package com.monday8am.nqueenspuzzle.game
 
 import com.monday8am.nqueenspuzzle.logic.NQueensLogic
-import com.monday8am.nqueenspuzzle.models.BoardRenderState
-import com.monday8am.nqueenspuzzle.models.CellState
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 class NQueensGame(
@@ -16,42 +13,37 @@ class NQueensGame(
 ) {
 
     val config: GameConfig
-        get() = _gameState.value.config
+        get() = _state.value.config
 
-    private data class InternalGameState(
+    data class NQueensState(
         val config: GameConfig,
         val queens: Set<Position> = emptySet(),
         val selectedQueen: Position? = null,
         val gameStartTime: Long? = null,
         val gameEndTime: Long? = null,
+        val visibleConflicts: Set<Position> = emptySet(),
+        val visibleAttackedCells: Set<Position> = emptySet(),
+        val isSolved: Boolean = false
     )
 
-    private val _gameState = MutableStateFlow(InternalGameState(config = initialConfig))
-
-    val state: Flow<GameState> = _gameState.map {
-        val boardState = buildRenderState(it)
-        if (it.gameEndTime == null) {
-            GameState.Board(boardState)
-        } else {
-            GameState.UserWon(it.gameEndTime - it.gameStartTime!!, boardState)
-        }
-    }
+    private val _state = MutableStateFlow(NQueensState(config = initialConfig))
+    val state: StateFlow<NQueensState> = _state
 
     fun restart(newConfig: GameConfig? = null) {
-        val config = newConfig ?: _gameState.value.config
-        _gameState.update { InternalGameState(config = config) }
+        val config = newConfig ?: _state.value.config
+        _state.update { NQueensState(config = config) }
     }
 
     fun userMove(position: Position) {
-        val current = _gameState.value
+        val current = _state.value
         if (current.gameEndTime != null) return
 
-        _gameState.update {
+        _state.update {
             handleCellTap(current, position)
         }
     }
 
-    private fun handleCellTap(state: InternalGameState, position: Position): InternalGameState {
+    private fun handleCellTap(state: NQueensState, position: Position): NQueensState {
         val newQueens: Set<Position>
         val newSelected: Position?
 
@@ -83,33 +75,21 @@ class NQueensGame(
             state.gameStartTime
         }
 
-        val endTime = if (logic.isSolved(newQueens, config.boardSize)) {
+        val isSolved = logic.isSolved(newQueens, config.boardSize)
+        val endTime = if (isSolved) {
             System.currentTimeMillis()
         } else {
             state.gameEndTime
         }
 
-        return state.copy(
-            queens = newQueens,
-            selectedQueen = newSelected,
-            gameStartTime = startTime,
-            gameEndTime = endTime
-        )
-    }
-
-    private fun buildRenderState(state: InternalGameState): BoardRenderState {
-        val startTime = System.currentTimeMillis()
-
-        // Query game logic for conflict
-        val allConflicts = logic.findConflictingQueens(state.queens)
-
-        // Apply difficulty-based filtering (presentation logic)
+        // Calculate game-logic based visibility
+        val allConflicts = logic.findConflictingQueens(newQueens)
         val visibleConflicts = when (state.config.difficulty) {
             Difficulty.EASY, Difficulty.MEDIUM -> allConflicts
             Difficulty.HARD -> {
                 // Only show conflict on selected queen if it's conflicting
-                if (state.selectedQueen != null && state.selectedQueen in allConflicts) {
-                    setOf(state.selectedQueen)
+                if (newSelected != null && newSelected in allConflicts) {
+                    setOf(newSelected)
                 } else {
                     emptySet()
                 }
@@ -117,43 +97,21 @@ class NQueensGame(
         }
 
         val visibleAttacks = when (state.config.difficulty) {
-            Difficulty.EASY -> state.selectedQueen?.let {
+            Difficulty.EASY -> newSelected?.let {
                 logic.getAttackedCells(it, state.config.boardSize)
             } ?: emptySet()
+
             Difficulty.MEDIUM, Difficulty.HARD -> emptySet()
         }
 
-        // Build cell states
-        val cells = buildList {
-            for (row in 0 until state.config.boardSize) {
-                for (col in 0 until state.config.boardSize) {
-                    val position = Position(row, col)
-                    val hasQueen = position in state.queens
-                    val isConflicting = hasQueen && position in visibleConflicts
-                    val isAttacked = position in visibleAttacks && !hasQueen
-                    val isLightSquare = (row + col) % 2 == 0
-
-                    add(
-                        CellState(
-                            position = position,
-                            hasQueen = hasQueen,
-                            isConflicting = isConflicting,
-                            isAttacked = isAttacked,
-                            isLightSquare = isLightSquare,
-                            isSelected = position == state.selectedQueen,
-                        )
-                    )
-                }
-            }
-        }
-
-        return BoardRenderState(
-            boardSize = state.config.boardSize,
-            difficulty = state.config.difficulty,
-            cells = cells,
-            queensRemaining = state.config.boardSize - state.queens.size,
-            isSolved = logic.isSolved(state.queens, state.config.boardSize),
-            processingTime = System.currentTimeMillis() - startTime,
+        return state.copy(
+            queens = newQueens,
+            selectedQueen = newSelected,
+            gameStartTime = startTime,
+            gameEndTime = endTime,
+            visibleConflicts = visibleConflicts,
+            visibleAttackedCells = visibleAttacks,
+            isSolved = isSolved
         )
     }
 }

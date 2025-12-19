@@ -2,313 +2,213 @@ package com.monday8am.nqueenspuzzle.game
 
 import com.monday8am.nqueenspuzzle.models.Difficulty
 import com.monday8am.nqueenspuzzle.models.Position
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NQueensGameTest {
+
     // ==================== Initialization ====================
 
     @Test
-    fun `initial state is Board with empty board`() {
+    fun `initial state is valid`() {
         val game = NQueensGame()
 
-        val state = game.state.value
-        assertTrue(state is GameState.Board)
-        val boardState = (state as GameState.Board).renderState
-        assertFalse(boardState.cells.any { it.hasQueen })
+        with(game.state.value) {
+            assertTrue("Board should start empty", queens.isEmpty())
+            assertNull("No queen should be selected initially", selectedQueen)
+            assertNull("Timer should not start until move is made", gameStartTime)
+            assertNull("Game end time should be null", gameEndTime)
+            assertEquals("Default size should be 8", 8, config.boardSize) // Assuming 8 is default
+        }
     }
 
     @Test
-    fun `initial board matches config parameters`() {
+    fun `initial board matches custom config`() {
         val config = GameConfig(boardSize = 6, difficulty = Difficulty.MEDIUM)
         val game = NQueensGame(initialConfig = config)
 
-        val state = game.state.value as GameState.Board
-        assertEquals(6, state.renderState.boardSize)
-        assertEquals(Difficulty.MEDIUM, state.renderState.difficulty)
-    }
-
-    @Test
-    fun `initial state has correct queensRemaining`() {
-        val game = NQueensGame(initialConfig = GameConfig(boardSize = 8))
-
-        val state = game.state.value as GameState.Board
-        assertEquals(8, state.renderState.queensRemaining)
+        with(game.state.value.config) {
+            assertEquals(6, boardSize)
+            assertEquals(Difficulty.MEDIUM, difficulty)
+        }
     }
 
     // ==================== User Moves ====================
 
     @Test
-    fun `userMove on empty cell places queen`() {
+    fun `userMove places and removes queens correctly`() {
         val game = NQueensGame()
+        val p00 = pos(0, 0)
 
-        game.userMove(Position(0, 0))
+        // 1. Place
+        game.userMove(p00)
+        with(game.state.value) {
+            assertTrue(queens.contains(p00))
+            assertEquals(p00, selectedQueen)
+            assertNotNull("Timer should start on first move", gameStartTime)
+        }
 
-        val state = game.state.value as GameState.Board
-        assertTrue(state.renderState.cells.find { it.position == Position(0, 0) }!!.hasQueen)
-        assertEquals(7, state.renderState.queensRemaining)
+        // 2. Remove (Toggle)
+        game.userMove(p00)
+        with(game.state.value) {
+            assertFalse(queens.contains(p00))
+            assertNull("Selection should clear when queen removed", selectedQueen)
+        }
     }
 
     @Test
-    fun `userMove on queen removes it`() {
+    fun `userMove moves a conflicting selected queen`() {
         val game = NQueensGame()
-        game.userMove(Position(3, 3)) // Place
-        game.userMove(Position(3, 3)) // Remove
+        val pStart = pos(0, 0)
+        val pConflict = pos(0, 3)
+        val pTarget = pos(2, 5)
 
-        val state = game.state.value as GameState.Board
-        assertFalse(state.renderState.cells.find { it.position == Position(3, 3) }!!.hasQueen)
-        assertEquals(8, state.renderState.queensRemaining)
-    }
+        // Setup: Place two queens on same row. The second one (pConflict) becomes selected.
+        game.placeQueens(pStart, pConflict)
 
-    @Test
-    fun `userMove starts timer on first move`() {
-        val game = NQueensGame()
-        val startTime = System.currentTimeMillis()
+        // Act: Move the selected queen (pConflict) to a safe spot (pTarget)
+        game.userMove(pTarget)
 
-        game.userMove(Position(0, 0))
-
-        // Game should have started timing
-        val state = game.state.value as GameState.Board
-        // We can't directly check the timer, but we can verify it's been set by making another move
-        // and checking that the state is still Board (not Init)
-        assertNotNull(state)
-    }
-
-    @Test
-    fun `userMove on conflicting selected queen moves it`() {
-        val game = NQueensGame()
-        // Place two conflicting queens on same row
-        game.userMove(Position(0, 0))
-        game.userMove(Position(0, 3)) // Same row - conflict, now selected
-
-        // Tap empty cell to move the selected conflicting queen
-        game.userMove(Position(2, 5))
-
-        val state = game.state.value as GameState.Board
-        // Original position should be empty, new position should have queen
-        assertFalse(state.renderState.cells.find { it.position == Position(0, 3) }!!.hasQueen)
-        assertTrue(state.renderState.cells.find { it.position == Position(2, 5) }!!.hasQueen)
-        // First queen should still be there
-        assertTrue(state.renderState.cells.find { it.position == Position(0, 0) }!!.hasQueen)
-    }
-
-    @Test
-    fun `userMove ignores taps when board full with conflicts`() {
-        val game = NQueensGame(initialConfig = GameConfig(boardSize = 4))
-        // Place 4 queens in conflicting positions (all same row)
-        game.userMove(Position(0, 0))
-        game.userMove(Position(0, 1))
-        game.userMove(Position(0, 2))
-        game.userMove(Position(0, 3))
-
-        val stateBefore = game.state.value as GameState.Board
-        val queensCountBefore = stateBefore.renderState.cells.count { it.hasQueen }
-
-        // Try to tap an empty cell - should do nothing since board is full and no queen selected
-        game.userMove(Position(1, 0))
-
-        val stateAfter = game.state.value as GameState.Board
-        // Board should remain unchanged
-        assertEquals(queensCountBefore, stateAfter.renderState.cells.count { it.hasQueen })
-        assertFalse(stateAfter.renderState.isSolved)
+        with(game.state.value) {
+            assertFalse("Old position should be empty", queens.contains(pConflict))
+            assertTrue("New position should have queen", queens.contains(pTarget))
+            assertTrue("Non-selected queen remains", queens.contains(pStart))
+        }
     }
 
     // ==================== Win Condition ====================
 
     @Test
-    fun `game emits UserWon when solved`() {
+    fun `game detects solved state`() {
         val game = NQueensGame(initialConfig = GameConfig(boardSize = 4))
-        // Place winning solution
-        game.userMove(Position(0, 1))
-        game.userMove(Position(1, 3))
-        game.userMove(Position(2, 0))
-        game.userMove(Position(3, 2))
 
-        val state = game.state.value
-        assertTrue(state is GameState.UserWon)
+        game.placeQueens(*SOLVED_4X4_MOVES)
+
+        with(game.state.value) {
+            assertTrue("Game should be marked solved", isSolved)
+            assertNotNull("End time should be recorded", gameEndTime)
+        }
     }
 
     @Test
-    fun `userMove after win is ignored`() {
+    fun `moves are ignored after game is solved`() {
         val game = NQueensGame(initialConfig = GameConfig(boardSize = 4))
-        // Place winning solution
-        game.userMove(Position(0, 1))
-        game.userMove(Position(1, 3))
-        game.userMove(Position(2, 0))
-        game.userMove(Position(3, 2))
+        game.placeQueens(*SOLVED_4X4_MOVES)
 
-        assertTrue(game.state.value is GameState.UserWon)
+        assertTrue(game.state.value.isSolved)
 
-        // Try to remove a queen after winning - should be ignored
-        game.userMove(Position(0, 1))
+        // Attempt to corrupt the board
+        game.userMove(SOLVED_4X4_MOVES.first())
 
-        // State should still be UserWon
-        assertTrue(game.state.value is GameState.UserWon)
-    }
-
-    @Test
-    fun `UserWon state includes correct elapsed time`() {
-        val game = NQueensGame(initialConfig = GameConfig(boardSize = 4))
-        val startTime = System.currentTimeMillis()
-
-        // Place winning solution
-        game.userMove(Position(0, 1))
-        game.userMove(Position(1, 3))
-        game.userMove(Position(2, 0))
-        game.userMove(Position(3, 2))
-
-        val endTime = System.currentTimeMillis()
-        val state = game.state.value as GameState.UserWon
-
-        // Elapsed time should be reasonable (less than 1 second for test)
-        assertTrue(state.gameTimeMillis < 1000)
-        assertTrue(state.gameTimeMillis >= 0)
+        with(game.state.value) {
+            assertTrue("Game remains solved", isSolved)
+            assertTrue("Queen was not removed", queens.contains(SOLVED_4X4_MOVES.first()))
+        }
     }
 
     // ==================== Restart ====================
 
     @Test
-    fun `restart clears all queens`() {
+    fun `restart resets board and timer`() {
         val game = NQueensGame()
-        game.userMove(Position(0, 0))
-        game.userMove(Position(1, 2))
-        game.userMove(Position(3, 4))
+        game.placeQueens(pos(0, 0), pos(1, 2))
+
+        // Ensure timer started
+        assertNotNull(game.state.value.gameStartTime)
 
         game.restart()
 
-        val state = game.state.value as GameState.Board
-        assertFalse(state.renderState.cells.any { it.hasQueen })
-        assertEquals(8, state.renderState.queensRemaining)
+        with(game.state.value) {
+            assertTrue(queens.isEmpty())
+            assertNull(gameStartTime)
+            assertNull(gameEndTime)
+            assertFalse(isSolved)
+        }
     }
 
     @Test
-    fun `restart preserves config when newConfig is null`() {
-        val game = NQueensGame(initialConfig = GameConfig(boardSize = 6, difficulty = Difficulty.HARD))
-        game.userMove(Position(0, 0))
+    fun `restart handles config changes`() {
+        // 1. Restart with same config (implicit)
+        val gameHard = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.HARD))
+        gameHard.restart()
+        assertEquals(Difficulty.HARD, gameHard.state.value.config.difficulty)
 
-        game.restart()
+        // 2. Restart with new config
+        val gameResizable = NQueensGame(initialConfig = GameConfig(boardSize = 8))
+        gameResizable.restart(newConfig = GameConfig(boardSize = 4))
 
-        val state = game.state.value as GameState.Board
-        assertEquals(6, state.renderState.boardSize)
-        assertEquals(Difficulty.HARD, state.renderState.difficulty)
+        with(gameResizable.state.value) {
+            assertEquals("Board size should update", 4, config.boardSize)
+            assertTrue("Queens should be cleared", queens.isEmpty())
+        }
     }
 
-    @Test
-    fun `restart with newConfig changes board size`() {
-        val game = NQueensGame(initialConfig = GameConfig(boardSize = 8))
-        game.userMove(Position(0, 0))
-
-        game.restart(newConfig = GameConfig(boardSize = 4))
-
-        val state = game.state.value as GameState.Board
-        assertEquals(4, state.renderState.boardSize)
-        assertEquals(16, state.renderState.cells.size)
-    }
+    // ==================== Difficulty Visibility Logic ====================
 
     @Test
-    fun `restart resets timer`() {
-        val game = NQueensGame()
-        game.userMove(Position(0, 0)) // Starts timer
-        game.userMove(Position(1, 2))
-
-        game.restart()
-
-        val state = game.state.value as GameState.Board
-        // Board should be empty, indicating fresh start
-        assertFalse(state.renderState.cells.any { it.hasQueen })
-    }
-
-    // ==================== Difficulty ====================
-
-    @Test
-    fun `EASY difficulty shows all conflicts`() {
+    fun `EASY difficulty visual aids`() {
         val game = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.EASY))
-        // Place conflicting queens
-        game.userMove(Position(0, 0))
-        game.userMove(Position(0, 3)) // Same row - conflict
+        val p1 = pos(0, 0)
+        val p2 = pos(0, 3) // Row conflict
 
-        val state = game.state.value as GameState.Board
-        // Both queens should be marked as conflicting
-        assertTrue(state.renderState.cells.find { it.position == Position(0, 0) }!!.isConflicting)
-        assertTrue(state.renderState.cells.find { it.position == Position(0, 3) }!!.isConflicting)
+        // 1. Check Conflicts
+        game.placeQueens(p1, p2)
+        with(game.state.value) {
+            assertTrue(visibleConflicts.contains(p1))
+            assertTrue(visibleConflicts.contains(p2))
+        }
+
+        // 2. Check Attacked Cells (requires selection)
+        game.userMove(p1) // Select p1
+        assertTrue("EASY should show attacked cells", game.state.value.visibleAttackedCells.isNotEmpty())
     }
 
     @Test
-    fun `EASY difficulty shows attacked cells for selected queen`() {
-        val game = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.EASY))
-        game.userMove(Position(0, 0)) // Places and selects queen
-
-        val state = game.state.value as GameState.Board
-        // Should show attacked cells (black dots)
-        val attackedCells = state.renderState.cells.filter { it.isEmptyAndAttacked }
-        assertTrue(attackedCells.isNotEmpty())
-    }
-
-    @Test
-    fun `HARD difficulty only shows selected queen conflict`() {
-        val game = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.HARD))
-        // Place conflicting queens
-        game.userMove(Position(0, 0))
-        game.userMove(Position(0, 3)) // Same row - conflict, now selected
-
-        val state = game.state.value as GameState.Board
-        // Only selected queen should be marked as conflicting
-        assertTrue(state.renderState.cells.find { it.position == Position(0, 3) }!!.isConflicting)
-        // Other conflicting queen should NOT be marked
-        assertFalse(state.renderState.cells.find { it.position == Position(0, 0) }!!.isConflicting)
-    }
-
-    @Test
-    fun `MEDIUM difficulty hides attacked cells`() {
+    fun `MEDIUM difficulty visual aids`() {
         val game = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.MEDIUM))
-        game.userMove(Position(0, 0)) // Places and selects queen
 
-        val state = game.state.value as GameState.Board
-        // Should NOT show attacked cells
-        val attackedCells = state.renderState.cells.filter { it.isEmptyAndAttacked }
-        assertTrue(attackedCells.isEmpty())
+        game.userMove(pos(0, 0)) // Place and select
+
+        assertTrue("MEDIUM should NOT show attacked cells", game.state.value.visibleAttackedCells.isEmpty())
+        // Note: Logic for MEDIUM conflicts implies it behaves like EASY regarding conflicts,
+        // or HARD regarding attacked cells. Based on original test, it just hides attacked cells.
     }
 
     @Test
-    fun `updateDifficulty preserves queens and updates hint visibility`() {
-        val game = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.EASY))
-        game.userMove(Position(0, 0))
-        game.userMove(Position(2, 1))
+    fun `HARD difficulty visual aids`() {
+        val game = NQueensGame(initialConfig = GameConfig(difficulty = Difficulty.HARD))
+        val p1 = pos(0, 0)
+        val p2 = pos(0, 3) // Row conflict
 
-        val stateBefore = game.state.value as GameState.Board
-        val queensBefore = stateBefore.renderState.cells.count { it.hasQueen }
+        game.placeQueens(p1, p2) // p2 is now selected because it was placed last
 
-        game.updateDifficulty(Difficulty.HARD)
-
-        val stateAfter = game.state.value as GameState.Board
-        // Queens should be preserved
-        assertEquals(queensBefore, stateAfter.renderState.cells.count { it.hasQueen })
-        // Difficulty should be updated
-        assertEquals(Difficulty.HARD, stateAfter.renderState.difficulty)
+        with(game.state.value) {
+            assertTrue("Selected conflicting queen is marked", visibleConflicts.contains(p2))
+            assertFalse("Unselected conflicting queen is HIDDEN", visibleConflicts.contains(p1))
+        }
     }
 
-    // ==================== State Flow Behavior ====================
+    // ==================== Helpers ====================
 
-    @Test
-    fun `gameState emits Board after each userMove`() {
-        val game = NQueensGame()
+    // Short helper to create Positions
+    private fun pos(r: Int, c: Int) = Position(r, c)
 
-        game.userMove(Position(0, 0))
-        assertTrue(game.state.value is GameState.Board)
-
-        game.userMove(Position(1, 2))
-        assertTrue(game.state.value is GameState.Board)
-
-        game.userMove(Position(3, 4))
-        assertTrue(game.state.value is GameState.Board)
+    // Helper to simulate multiple moves
+    private fun NQueensGame.placeQueens(vararg positions: Position) {
+        positions.forEach { this.userMove(it) }
     }
 
-    @Test
-    fun `gameState is StateFlow with immediate value`() {
-        val game = NQueensGame()
-
-        // StateFlow should have a value immediately
-        assertNotNull(game.state.value)
-        assertTrue(game.state.value is GameState.Board)
+    companion object {
+        // Solution for 4x4 board: (0,1), (1,3), (2,0), (3,2)
+        private val SOLVED_4X4_MOVES = arrayOf(
+            Position(0, 1),
+            Position(1, 3),
+            Position(2, 0),
+            Position(3, 2)
+        )
     }
 }

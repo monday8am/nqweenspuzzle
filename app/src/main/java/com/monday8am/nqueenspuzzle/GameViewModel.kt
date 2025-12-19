@@ -3,7 +3,6 @@ package com.monday8am.nqueenspuzzle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.monday8am.nqueenspuzzle.game.GameConfig
-import com.monday8am.nqueenspuzzle.game.GameState
 import com.monday8am.nqueenspuzzle.game.NQueensGame
 import com.monday8am.nqueenspuzzle.models.BoardRenderState
 import com.monday8am.nqueenspuzzle.models.Difficulty
@@ -28,12 +27,46 @@ class GameViewModel : ViewModel() {
     private val game = NQueensGame(initialConfig = GameConfig())
 
     val renderState: StateFlow<BoardRenderState> = game.state
-        .onEach { state -> if(state is GameState.UserWon) triggerWinNavigation(state.gameTimeMillis) }
-        .map { state ->
-            when (state) {
-                is GameState.Board -> state.renderState
-                is GameState.UserWon -> state.renderState
+        .onEach { state ->
+            if (state.gameEndTime != null && state.gameStartTime != null) {
+                // Only trigger if we have a valid elapsed time
+                triggerWinNavigation(state.gameEndTime - state.gameStartTime)
             }
+        }
+        .map { state ->
+            val startTime = System.currentTimeMillis()
+            // Build cell states
+            val cells = buildList {
+                for (row in 0 until state.config.boardSize) {
+                    for (col in 0 until state.config.boardSize) {
+                        val position = com.monday8am.nqueenspuzzle.models.Position(row, col)
+                        val hasQueen = position in state.queens
+                        val isConflicting = hasQueen && position in state.visibleConflicts
+                        val isAttacked = position in state.visibleAttackedCells && !hasQueen
+                        val isLightSquare = (row + col) % 2 == 0
+
+                        add(
+                            com.monday8am.nqueenspuzzle.models.CellState(
+                                position = position,
+                                hasQueen = hasQueen,
+                                isConflicting = isConflicting,
+                                isAttacked = isAttacked,
+                                isLightSquare = isLightSquare,
+                                isSelected = position == state.selectedQueen,
+                            )
+                        )
+                    }
+                }
+            }
+
+            BoardRenderState(
+                boardSize = state.config.boardSize,
+                difficulty = state.config.difficulty,
+                cells = cells,
+                queensRemaining = state.config.boardSize - state.queens.size,
+                isSolved = state.isSolved,
+                processingTime = System.currentTimeMillis() - startTime,
+            )
         }
         .stateIn(
             scope = viewModelScope,

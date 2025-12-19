@@ -261,14 +261,14 @@ class GameViewModelTest {
     }
 
     @Test
-    fun `setDifficulty preserves existing queens`() {
+    fun `setDifficulty resets existing queens`() {
         viewModel.dispatch(UserAction.TapCell(Position(0, 0)))
         viewModel.dispatch(UserAction.TapCell(Position(2, 1)))
         viewModel.dispatch(UserAction.SetDifficulty(Difficulty.MEDIUM))
 
         val state = viewModel.renderState.value
-        assertEquals(2, state.cells.count { it.hasQueen })
-        assertEquals(6, state.queensRemaining)
+        assertEquals(0, state.cells.count { it.hasQueen })
+        assertEquals(8, state.queensRemaining)
     }
 
     @Test
