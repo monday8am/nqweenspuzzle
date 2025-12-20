@@ -1,6 +1,7 @@
 package com.monday8am.nqueenspuzzle.ui.results
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,10 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.monday8am.nqueenspuzzle.R
 import com.monday8am.nqueenspuzzle.data.ScoreEntry
 import com.monday8am.nqueenspuzzle.ui.theme.NQueensPuzzleTheme
 
@@ -136,11 +140,9 @@ private fun LandscapeLayout(
         CompletionCard(
             boardSize = boardSize,
             elapsedSeconds = elapsedSeconds,
-            alignment = Alignment.Start,
             modifier =
                 Modifier
                     .weight(1f),
-            // Removed fillMaxHeight so the card is only as tall as it needs to be
         )
 
         // Right block
@@ -171,11 +173,10 @@ private fun CompletionCard(
     boardSize: Int,
     elapsedSeconds: Long,
     modifier: Modifier = Modifier,
-    alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
 ) {
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = alignment,
         modifier = modifier,
     ) {
         Text(
@@ -185,6 +186,12 @@ private fun CompletionCard(
             color = MaterialTheme.colorScheme.primary,
         )
 
+        Image(
+            painter = painterResource(id = R.drawable.queen_of_queens),
+            contentDescription = "Queen of Queens!",
+            modifier = Modifier.size(100.dp),
+        )
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors =
@@ -192,6 +199,7 @@ private fun CompletionCard(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
         ) {
+
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
