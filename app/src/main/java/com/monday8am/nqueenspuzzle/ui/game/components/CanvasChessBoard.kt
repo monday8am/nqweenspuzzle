@@ -1,14 +1,15 @@
 package com.monday8am.nqueenspuzzle.ui.game.components
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -124,53 +125,63 @@ private fun CanvasBoard(
     cells: List<CellState>,
     modifier: Modifier = Modifier
 ) {
-    Canvas(modifier = modifier.aspectRatio(1f)) {
-        val cellSize = size.width / boardSize
+    Spacer(
+        modifier = modifier
+            .aspectRatio(1f)
+            .drawWithCache {
+                val cellSize = size.width / boardSize
+                // Pre-calculate path/objects if needed based on size
+                // For a simple grid, calculations are cheap, but we avoid allocating Color/Stroke in loop
 
-        // Draw all light squares as background
-        drawRect(LightSquareColor)
+                onDrawBehind {
+                    // Draw board background (static usually, but dynamic here based on simple math)
+                    drawRect(LightSquareColor)
 
-        for (row in 0 until boardSize) {
-            for (col in 0 until boardSize) {
-                val cell = cells[row * boardSize + col]
-                val offset = Offset(col * cellSize, row * cellSize)
-                val dotOffset = Offset(offset.x + cellSize / 2, offset.y + cellSize / 2)
+                    for (row in 0 until boardSize) {
+                        for (col in 0 until boardSize) {
+                            val cellIndex = row * boardSize + col
+                            val cell = cells[cellIndex]
+                            val left = col * cellSize
+                            val top = row * cellSize
+                            val center = Offset(left + cellSize / 2, top + cellSize / 2)
 
-                if ((row + col) % 2 == 1) {
-                    drawRect(
-                        color = DarkSquareColor,
-                        topLeft = Offset(col * cellSize, row * cellSize),
-                        size = Size(cellSize, cellSize)
-                    )
-                }
 
-                if (cell.hasQueenAttacking) {
-                    drawRect(
-                        color = ConflictColor,
-                        topLeft = Offset(col * cellSize, row * cellSize),
-                        size = Size(cellSize, cellSize)
-                    )
-                }
+                            if ((row + col) % 2 == 1) {
+                                drawRect(
+                                    color = DarkSquareColor,
+                                    topLeft = Offset(left, top),
+                                    size = Size(cellSize, cellSize)
+                                )
+                            }
 
-                if (cell.hasQueenAttacked) {
-                    val strokeWidth = cellSize * 0.1f
-                    val radius = (cellSize - strokeWidth) / 2
-                    // We shrink the radius slightly so the stroke doesn't get clipped
-                    drawCircle(
-                        color = attackedQueenColor,
-                        radius = radius * 0.85f,
-                        center = dotOffset,
-                        style = Stroke(width = strokeWidth),
-                    )
-                } else if (cell.isEmptyAndAttacked) {
-                    drawCircle(
-                        color = markerColor,
-                        radius = cellSize * 0.15f,
-                        center = dotOffset,
-                        style = Fill,
-                    )
+                            if (cell.hasQueenAttacking) {
+                                drawRect(
+                                    color = ConflictColor,
+                                    topLeft = Offset(left, top),
+                                    size = Size(cellSize, cellSize)
+                                )
+                            }
+
+                            if (cell.hasQueenAttacked) {
+                                val strokeWidth = cellSize * 0.1f
+                                val radius = (cellSize - strokeWidth) / 2
+                                drawCircle(
+                                    color = attackedQueenColor,
+                                    radius = radius * 0.85f,
+                                    center = center,
+                                    style = Stroke(width = strokeWidth),
+                                )
+                            } else if (cell.isEmptyAndAttacked) {
+                                drawCircle(
+                                    color = markerColor,
+                                    radius = cellSize * 0.15f,
+                                    center = center,
+                                    style = Fill,
+                                )
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
+    )
 }
