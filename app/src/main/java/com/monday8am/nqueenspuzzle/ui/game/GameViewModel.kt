@@ -124,6 +124,8 @@ class GameViewModel(
             difficulty = state.config.difficulty,
             cells = cells,
             queensRemaining = state.config.boardSize - state.queens.size,
+            visibleConflicts = state.visibleConflicts,
+            visibleAttackedCells = state.visibleAttackedCells,
             isSolved = state.isSolved,
             calculationTime = state.calculationTime + (System.currentTimeMillis() - startTime),
         )

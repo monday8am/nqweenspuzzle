@@ -2,6 +2,7 @@ package com.monday8am.nqueenspuzzle.ui.game
 
 import androidx.annotation.VisibleForTesting
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
+import com.monday8am.nqueenspuzzle.logic.models.Position
 
 data class BoardRenderState(
     val boardSize: Int,
@@ -11,4 +12,6 @@ data class BoardRenderState(
     val isSolved: Boolean,
     @get:VisibleForTesting
     val calculationTime: Long = 0L,
+    val visibleConflicts: Set<Position> = emptySet(),
+    val visibleAttackedCells: Set<Position> = emptySet(),
 )

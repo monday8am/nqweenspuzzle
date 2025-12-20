@@ -63,7 +63,7 @@ class NQueensGame(
     ): NQueensState {
         val newQueens: Set<Position>
         val newSelected: Position?
-        var action: GameAction? = null
+        var action: GameAction?
 
         when {
             // Case 1: Tap on an existing queen to remove it.
@@ -78,14 +78,14 @@ class NQueensGame(
             state.selectedQueen != null && logic.findConflictingQueens(state.queens).contains(state.selectedQueen) -> {
                 newQueens = state.queens - state.selectedQueen + position
                 newSelected = position
-                // Action will be set after conflict calculation below
+                action = GameAction.QueenMoved(from = state.selectedQueen, to = position, causedConflict = false)
             }
 
             // Case 3: Tap on an empty cell to add a new queen (if board is not full).
             state.queens.size < state.config.boardSize -> {
                 newQueens = state.queens + position
                 newSelected = position
-                // Action will be set after conflict calculation below
+                action = GameAction.QueenAdded(position = position, causedConflict = false)
             }
 
             // Case 4: Board is full and no queen is selected -> do nothing.
@@ -109,34 +109,14 @@ class NQueensGame(
             } else {
                 state.gameEndTime
             }
-
-        // Calculate game-logic based visibility
-        val allConflicts = logic.findConflictingQueens(newQueens)
-
-        // Set action for add/move cases (need conflict info)
-        if (action == null) {
-            val causedConflict = position in allConflicts
-            action =
-                if (state.selectedQueen != null && state.selectedQueen in state.queens) {
-                    // This was a move
-                    GameAction.QueenMoved(
-                        from = state.selectedQueen,
-                        to = position,
-                        causedConflict = causedConflict,
-                    )
-                } else {
-                    // This was an add
-                    GameAction.QueenAdded(
-                        position = position,
-                        causedConflict = causedConflict,
-                    )
-                }
-        }
-
-        // Check for win
         if (isSolved) {
             action = GameAction.GameWon
         }
+
+        // Calculate game-logic based visibility
+        val allConflicts = logic.findConflictingQueens(newQueens)
+        action = action.updateConflict(value = position in allConflicts)
+
         val visibleConflicts =
             when (state.config.difficulty) {
                 Difficulty.EASY, Difficulty.MEDIUM -> {
