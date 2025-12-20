@@ -11,7 +11,8 @@
       "Bash(then sed -i '' 's/^package com\\\\.monday8am\\\\.nqueenspuzzle$/package com.monday8am.nqueenspuzzle.ui.game/' app/src/test/java/com/monday8am/nqueenspuzzle/ui/game/GameViewModelTest.kt)",
       "Bash(else echo \"File not found\")",
       "Bash(fi)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(tree:*)"
     ]
   }
 }
