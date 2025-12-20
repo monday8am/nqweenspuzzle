@@ -3,13 +3,11 @@ package com.monday8am.nqueenspuzzle.ui.game
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.monday8am.nqueenspuzzle.audio.SoundEffect
-import com.monday8am.nqueenspuzzle.audio.SoundEffectManager
 import com.monday8am.nqueenspuzzle.logic.NQueensGame
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.GameAction
 import com.monday8am.nqueenspuzzle.logic.models.GameConfig
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
 import com.monday8am.nqueenspuzzle.navigation.ResultsRoute
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,56 +41,20 @@ sealed class UserAction {
  */
 class GameViewModel(
     private val game: NQueensGame = NQueensGame(initialConfig = GameConfig()),
-    private val soundEffectManager: SoundEffectManager? = null,
 ) : ViewModel() {
+
+    private val _sideEffects = Channel<GameSideEffect>()
+    val sideEffects = _sideEffects.receiveAsFlow()
+
     val renderState: StateFlow<BoardRenderState> =
         game.state
-            .onEach { state ->
-                // Side effects: Play sounds based on game action
-                when (val action = state.lastAction) {
-                    is GameAction.QueenAdded -> {
-                        if (action.causedConflict) {
-                            soundEffectManager?.play(SoundEffect.QUEEN_CONFLICT)
-                        } else {
-                            soundEffectManager?.play(SoundEffect.QUEEN_PLACED)
-                        }
-                    }
-
-                    is GameAction.QueenMoved -> {
-                        if (action.causedConflict) {
-                            soundEffectManager?.play(SoundEffect.QUEEN_CONFLICT)
-                        } else {
-                            soundEffectManager?.play(SoundEffect.QUEEN_PLACED)
-                        }
-                    }
-
-                    is GameAction.GameWon -> {
-                        soundEffectManager?.play(SoundEffect.GAME_WON)
-                    }
-
-                    is GameAction.QueenRemoved -> { /* No sound */
-                    }
-
-                    is GameAction.GameReset -> { /* No sound */
-                    }
-
-                    null -> { /* Initial state */
-                    }
-                }
-
-                // Side effects: Check for win condition
-                if (state.isSolved) {
-                    triggerWinNavigation(state.config.boardSize, state.elapsedTime)
-                }
-            }.map { state -> buildBoardRenderState(state) }
+            .onEach { state -> handleSideEffects(state) }
+            .map { state -> buildBoardRenderState(state) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.Eagerly,
                 initialValue = createEmptyBoardRenderState(),
             )
-
-    private val _navigationEvent = Channel<NavigationEvent>()
-    val navigationEvent = _navigationEvent.receiveAsFlow()
 
     fun dispatch(action: UserAction) {
         when (action) {
@@ -100,6 +62,31 @@ class GameViewModel(
             is UserAction.SetBoardSize -> game.restart(newConfig = game.config.copy(boardSize = action.size))
             is UserAction.SetDifficulty -> game.restart(newConfig = game.config.copy(difficulty = action.difficulty))
             is UserAction.Reset -> game.restart()
+        }
+    }
+
+    private fun handleSideEffects(state: NQueensGame.NQueensState) {
+        when (val action = state.lastAction) {
+            is GameAction.QueenAdded,
+            is GameAction.QueenMoved,
+            is GameAction. QueenRemoved -> {
+                if (action.causedConflict()) {
+                    emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_CONFLICT))
+                } else {
+                    emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_PLACED))
+                }
+            }
+
+            is GameAction.GameReset -> {
+                emitSideEffect(GameSideEffect.PlaySound(SoundEffect.RESET_GAME))
+            }
+
+            is GameAction.GameWon -> {
+                emitSideEffect(GameSideEffect.PlaySound(SoundEffect.GAME_WON))
+                triggerWinNavigation(state.config.boardSize, state.elapsedTime)
+            }
+
+            else -> { /* No side effects for other actions */ }
         }
     }
 
@@ -132,16 +119,20 @@ class GameViewModel(
         boardSize: Int,
         gameTimeMillis: Long,
     ) {
+        emitSideEffect(
+            GameSideEffect.NavigateToResults(
+                route =
+                    ResultsRoute(
+                        boardSize = boardSize,
+                        elapsedSeconds = gameTimeMillis / 1000,
+                    ),
+            ),
+        )
+    }
+
+    private fun emitSideEffect(effect: GameSideEffect) {
         viewModelScope.launch {
-            _navigationEvent.send(
-                NavigationEvent.NavigateToResults(
-                    route =
-                        ResultsRoute(
-                            boardSize = boardSize,
-                            elapsedSeconds = gameTimeMillis / 1000,
-                        ),
-                ),
-            )
+            _sideEffects.send(effect)
         }
     }
 }

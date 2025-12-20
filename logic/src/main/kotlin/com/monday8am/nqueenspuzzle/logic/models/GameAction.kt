@@ -27,4 +27,12 @@ sealed class GameAction {
             else -> this
         }
     }
+
+    fun causedConflict(): Boolean {
+        return when (this) {
+            is QueenAdded -> causedConflict
+            is QueenMoved -> causedConflict
+            else -> false
+        }
+    }
 }
