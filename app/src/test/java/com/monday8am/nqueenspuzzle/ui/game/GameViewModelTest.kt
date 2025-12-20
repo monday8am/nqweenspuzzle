@@ -2,14 +2,16 @@ package com.monday8am.nqueenspuzzle.ui.game
 
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -41,7 +43,7 @@ class GameViewModelTest {
     fun `initial state has no queens`() {
         val state = viewModel.renderState.value
         assertEquals(8, state.queensRemaining)
-        assertFalse(state.cells.any { it.hasQueen })
+        assertFalse(state.testCells.any { it.hasQueen })
     }
 
     @Test
@@ -53,7 +55,7 @@ class GameViewModelTest {
     @Test
     fun `initial state has 64 cells`() {
         val state = viewModel.renderState.value
-        assertEquals(64, state.cells.size)
+        assertEquals(64, state.testCells.size)
     }
 
     // ==================== TapCell - Placing Queens ====================
@@ -63,7 +65,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(0, 0)))
 
         val state = viewModel.renderState.value
-        assertTrue(state.cells.find { it.position == Position(0, 0) }!!.hasQueen)
+        assertTrue(state.testCells.find { it.position == Position(0, 0) }!!.hasQueen)
         assertEquals(7, state.queensRemaining)
     }
 
@@ -74,7 +76,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(4, 3)))
 
         val state = viewModel.renderState.value
-        val queenCells = state.cells.filter { it.hasQueen }
+        val queenCells = state.testCells.filter { it.hasQueen }
         assertEquals(3, queenCells.size)
         assertEquals(5, state.queensRemaining)
     }
@@ -86,7 +88,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(3, 3))) // Place queen (auto-selects)
 
         val state = viewModel.renderState.value
-        val attackedCells = state.cells.filter { it.isAttacked }
+        val attackedCells = state.testCells.filter { it.isAttacked }
         assertTrue(attackedCells.isNotEmpty())
     }
 
@@ -96,7 +98,7 @@ class GameViewModelTest {
 
         val state1 = viewModel.renderState.value
         val attacked1 =
-            state1.cells
+            state1.testCells
                 .filter { it.isAttacked }
                 .map { it.position }
                 .toSet()
@@ -105,7 +107,7 @@ class GameViewModelTest {
 
         val state2 = viewModel.renderState.value
         val attacked2 =
-            state2.cells
+            state2.testCells
                 .filter { it.isAttacked }
                 .map { it.position }
                 .toSet()
@@ -121,7 +123,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(3, 3))) // Remove (tapping existing queen)
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.find { it.position == Position(3, 3) }!!.hasQueen)
+        assertFalse(state.testCells.find { it.position == Position(3, 3) }!!.hasQueen)
         assertEquals(8, state.queensRemaining)
     }
 
@@ -131,7 +133,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(3, 3))) // Remove
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.isAttacked })
+        assertFalse(state.testCells.any { it.isAttacked })
     }
 
     // ==================== Conflict Detection ====================
@@ -142,8 +144,8 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(0, 5))) // Same row - conflict
 
         val state = viewModel.renderState.value
-        assertTrue(state.cells.find { it.position == Position(0, 0) }!!.isConflicting)
-        assertTrue(state.cells.find { it.position == Position(0, 5) }!!.isConflicting)
+        assertTrue(state.testCells.find { it.position == Position(0, 0) }!!.isConflicting)
+        assertTrue(state.testCells.find { it.position == Position(0, 5) }!!.isConflicting)
     }
 
     @Test
@@ -152,8 +154,8 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.TapCell(Position(2, 1))) // No conflict
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.find { it.position == Position(0, 0) }!!.isConflicting)
-        assertFalse(state.cells.find { it.position == Position(2, 1) }!!.isConflicting)
+        assertFalse(state.testCells.find { it.position == Position(0, 0) }!!.isConflicting)
+        assertFalse(state.testCells.find { it.position == Position(2, 1) }!!.isConflicting)
     }
 
     // ==================== Reset ====================
@@ -166,7 +168,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.Reset)
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.hasQueen })
+        assertFalse(state.testCells.any { it.hasQueen })
         assertEquals(8, state.queensRemaining)
     }
 
@@ -178,7 +180,7 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         assertEquals(4, state.boardSize)
-        assertEquals(16, state.cells.size)
+        assertEquals(16, state.testCells.size)
     }
 
     @Test
@@ -188,7 +190,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.Reset)
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.isAttacked })
+        assertFalse(state.testCells.any { it.isAttacked })
     }
 
     // ==================== SetBoardSize ====================
@@ -199,7 +201,7 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         assertEquals(4, state.boardSize)
-        assertEquals(16, state.cells.size)
+        assertEquals(16, state.testCells.size)
     }
 
     @Test
@@ -209,7 +211,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.SetBoardSize(6))
 
         val state = viewModel.renderState.value
-        assertFalse(state.cells.any { it.hasQueen })
+        assertFalse(state.testCells.any { it.hasQueen })
         assertEquals(6, state.queensRemaining)
     }
 
@@ -268,7 +270,7 @@ class GameViewModelTest {
         viewModel.dispatch(UserAction.SetDifficulty(Difficulty.MEDIUM))
 
         val state = viewModel.renderState.value
-        assertEquals(0, state.cells.count { it.hasQueen })
+        assertEquals(0, state.testCells.count { it.hasQueen })
         assertEquals(8, state.queensRemaining)
     }
 
@@ -280,7 +282,7 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         assertEquals(6, state.boardSize)
-        assertEquals(36, state.cells.size)
+        assertEquals(36, state.testCells.size)
     }
 
     @Test
@@ -302,10 +304,10 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         // Original position should be empty, new position should have queen
-        assertFalse(state.cells.find { it.position == Position(0, 3) }!!.hasQueen)
-        assertTrue(state.cells.find { it.position == Position(2, 5) }!!.hasQueen)
+        assertFalse(state.testCells.find { it.position == Position(0, 3) }!!.hasQueen)
+        assertTrue(state.testCells.find { it.position == Position(2, 5) }!!.hasQueen)
         // First queen should still be there
-        assertTrue(state.cells.find { it.position == Position(0, 0) }!!.hasQueen)
+        assertTrue(state.testCells.find { it.position == Position(0, 0) }!!.hasQueen)
         assertEquals(6, state.queensRemaining)
     }
 
@@ -319,8 +321,8 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         // Both positions should have queens (original not moved, new one added)
-        assertTrue(state.cells.find { it.position == Position(0, 0) }!!.hasQueen)
-        assertTrue(state.cells.find { it.position == Position(2, 1) }!!.hasQueen)
+        assertTrue(state.testCells.find { it.position == Position(0, 0) }!!.hasQueen)
+        assertTrue(state.testCells.find { it.position == Position(2, 1) }!!.hasQueen)
         assertEquals(6, state.queensRemaining)
     }
 
@@ -342,7 +344,7 @@ class GameViewModelTest {
 
         val state = viewModel.renderState.value
         // Queen should still be there
-        assertTrue(state.cells.find { it.position == Position(0, 1) }!!.hasQueen)
+        assertTrue(state.testCells.find { it.position == Position(0, 1) }!!.hasQueen)
         assertTrue(state.isSolved)
     }
 

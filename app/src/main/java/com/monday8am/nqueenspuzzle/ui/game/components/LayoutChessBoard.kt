@@ -18,25 +18,26 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.logic.models.Position
+import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
 
 @Composable
 internal fun LayoutChessBoard(
-    selectedQueen: Position?,
-    queens: Set<Position>,
-    visibleConflicts: Set<Position>,
-    visibleAttackedCells: Set<Position>,
-    boardSize: Int,
+    state: BoardRenderState,
     onCellTap: (Position) -> Unit,
 ) {
     Layout(
         content = {
-            for (row in 0 until boardSize) {
-                for (col in 0 until boardSize) {
+            for (row in 0 until state.boardSize) {
+                for (col in 0 until state.boardSize) {
                     val position = Position(row, col)
-                    val hasQueen = position in queens
-                    val hasQueenAttacking = hasQueen && position in visibleConflicts && selectedQueen == position
-                    val hasQueenAttacked = hasQueen && position in visibleConflicts && selectedQueen != position
-                    val isEmptyAndAttacked = position in visibleAttackedCells && !hasQueen // Empty & Attacked
+                    val hasQueen = state.isQueen(position)
+                    val isConflicting = state.isConflicting(position)
+                    val isSelected = state.isSelected(position)
+                    val isAttacked = state.isAttacked(position)
+
+                    val hasQueenAttacking = hasQueen && isConflicting && isSelected
+                    val hasQueenAttacked = hasQueen && isConflicting && !isSelected
+                    val isEmptyAndAttacked = !hasQueen && isAttacked
 
                     Cell(
                         hasQueen = hasQueen,
@@ -44,7 +45,7 @@ internal fun LayoutChessBoard(
                         hasQueenAttacked = hasQueenAttacked,
                         isEmptyAndAttacked = isEmptyAndAttacked,
                         isLightSquare = (row + col) % 2 == 0,
-                        boardSize = boardSize,
+                        boardSize = state.boardSize,
                         onClick = { onCellTap(position) },
                     )
                 }
@@ -55,7 +56,7 @@ internal fun LayoutChessBoard(
                 .aspectRatio(1f)
                 .border(2.dp, Color.Black),
     ) { measurables, constraints ->
-        val boardSize = boardSize
+        val boardSize = state.boardSize
         val cellWidth = constraints.maxWidth / boardSize
         val cellConstraints =
             Constraints.fixed(

@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
 import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
 
@@ -22,7 +21,7 @@ internal val markerColor = Color.Black.copy(alpha = 0.2f)
 internal val attackedQueenColor = ConflictColor.copy(alpha = 0.8f)
 
 @Composable
-fun GameBoard(
+internal fun GameBoard(
     state: BoardRenderState,
     onCellTap: (Position) -> Unit,
     modifier: Modifier = Modifier,
@@ -39,20 +38,12 @@ fun GameBoard(
 
         if (useCanvasBoard) {
             CanvasChessBoard(
-                selectedQueen = state.selectedQueen,
-                queens = state.queens,
-                visibleConflicts = state.visibleConflicts,
-                visibleAttackedCells = state.visibleAttackedCells,
-                boardSize = state.boardSize,
+                state = state,
                 onCellTap = onCellTap,
             )
         } else {
             LayoutChessBoard(
-                selectedQueen = state.selectedQueen,
-                queens = state.queens,
-                visibleConflicts = state.visibleConflicts,
-                visibleAttackedCells = state.visibleAttackedCells,
-                boardSize = state.boardSize,
+                state = state,
                 onCellTap = onCellTap,
             )
         }
@@ -65,23 +56,11 @@ fun GameBoard(
     }
 }
 
-private val inProgressState =
-    BoardRenderState(
-        boardSize = 8,
-        difficulty = Difficulty.EASY,
-        queens = setOf(Position(0, 0), Position(0, 5), Position(1, 2)),
-        selectedQueen = Position(0, 0),
-        visibleConflicts = setOf(Position(0, 0), Position(0, 5)),
-        queensRemaining = 5,
-        isSolved = false,
-        calculationTime = 45L,
-    )
-
 @Preview(showBackground = true, name = "8x8 Board - In Progress")
 @Composable
-private fun GameBoardPreviewInProgress() {
+private fun LayoutBoardPreview() {
     GameBoard(
-        state = inProgressState,
+        state = sampleBoardRenderState,
         onCellTap = { _ -> },
         useCanvasBoard = false,
     )
@@ -91,7 +70,7 @@ private fun GameBoardPreviewInProgress() {
 @Composable
 private fun CanvasBoardPreview() {
     GameBoard(
-        state = inProgressState,
+        state = sampleBoardRenderState,
         onCellTap = { _ -> },
         useCanvasBoard = true,
     )

@@ -21,44 +21,34 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.logic.models.Position
+import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
 
 @Composable
 internal fun CanvasChessBoard(
-    selectedQueen: Position?,
-    queens: Set<Position>,
-    visibleConflicts: Set<Position>,
-    visibleAttackedCells: Set<Position>,
-    boardSize: Int,
+    state: BoardRenderState,
     onCellTap: (Position) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .pointerInput(boardSize) {
+            .pointerInput(state.boardSize) {
                 detectTapGestures { offset ->
-                    val cellSize = size.width / boardSize
+                    val cellSize = size.width / state.boardSize
                     val col = (offset.x / cellSize).toInt()
                     val row = (offset.y / cellSize).toInt()
-                    if (col in 0 until boardSize && row in 0 until boardSize) {
+                    if (col in 0 until state.boardSize && row in 0 until state.boardSize) {
                         onCellTap(Position(row, col))
                     }
                 }
             }
     ) {
         CanvasBoard(
-            selectedQueen = selectedQueen,
-            boardSize = boardSize,
-            queens = queens,
-            visibleConflicts = visibleConflicts,
-            visibleAttackedCells = visibleAttackedCells,
+            state = state,
         )
 
         PieceLayout(
-            selectedQueen = selectedQueen,
-            boardSize = boardSize,
-            queens = queens,
-            visibleConflicts = visibleConflicts,
+            state = state,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -66,26 +56,24 @@ internal fun CanvasChessBoard(
 
 @Composable
 private fun PieceLayout(
-    boardSize: Int,
-    selectedQueen: Position?,
-    queens: Set<Position>,
-    visibleConflicts: Set<Position>,
+    state: BoardRenderState,
     modifier: Modifier = Modifier,
 ) {
-    val activeQueens = queens.toList()
+    val activeQueens = state.queens.toList()
 
     Layout(
         content = {
             activeQueens.forEach { position ->
                 QueenPiece(
-                    isSelected = position == selectedQueen,
-                    isInConflict = position in visibleConflicts,
-                    boardSize = boardSize,
+                    isInConflict = state.isConflicting(position),
+                    isSelected = state.isSelected(position),
+                    boardSize = state.boardSize,
                 )
             }
         },
         modifier = modifier,
     ) { measurables, constraints ->
+        val boardSize = state.boardSize
         val cellSize = constraints.maxWidth / boardSize
         val pieceConstraints = Constraints.fixed(cellSize, cellSize)
         val placeables = measurables.map { it.measure(pieceConstraints) }
@@ -131,34 +119,31 @@ private fun QueenPiece(
 
 @Composable
 private fun CanvasBoard(
-    boardSize: Int,
-    selectedQueen: Position?,
-    queens: Set<Position>,
-    visibleConflicts: Set<Position>,
-    visibleAttackedCells: Set<Position>,
+    state: BoardRenderState,
     modifier: Modifier = Modifier
 ) {
     Spacer(
         modifier = modifier
             .aspectRatio(1f)
             .drawWithCache {
-                val cellSize = size.width / boardSize
+                val cellSize = size.width / state.boardSize
 
                 onDrawBehind {
                     drawRect(LightSquareColor)
 
-                    for (row in 0 until boardSize) {
-                        for (col in 0 until boardSize) {
+                    for (row in 0 until state.boardSize) {
+                        for (col in 0 until state.boardSize) {
                             val position = Position(row, col)
                             val left = col * cellSize
                             val top = row * cellSize
                             val center = Offset(left + cellSize / 2, top + cellSize / 2)
 
-
-                            // Check sets directly
+                            // Check logic
                             val isDarkSquare = (row + col) % 2 == 1
-                            val hasQueen = position in queens
-                            val isSelected = selectedQueen == position
+                            val hasQueen = state.isQueen(position)
+                            val isSelected = state.isSelected(position)
+                            val isConflicting = state.isConflicting(position)
+                            val isAttacked = state.isAttacked(position)
 
                             // 1. Draw Board Background (if dark square)
                             if (isDarkSquare) {
@@ -169,25 +154,30 @@ private fun CanvasBoard(
                                 )
                             }
 
-                            if (hasQueen && (position in visibleConflicts) && !isSelected) {
-                                val strokeWidth = cellSize * 0.1f
-                                val radius = (cellSize - strokeWidth) / 2
-                                drawCircle(
-                                    color = attackedQueenColor,
-                                    radius = radius * 0.85f,
-                                    center = center,
-                                    style = Stroke(width = strokeWidth),
-                                )
-                            } else if (hasQueen && position in visibleConflicts && isSelected) {
-                                drawRect(
-                                    color = ConflictColor,
-                                    topLeft = Offset(left, top),
-                                    size = Size(cellSize, cellSize)
-                                )
-                            }
-
-                            // 3. Draw Hints/Markers
-                            if (!hasQueen && position in visibleAttackedCells) {
+                            // 2. Draw Conflicts or 3. Draw Hints
+                            if (hasQueen) {
+                                if (isConflicting) {
+                                    if (isSelected) {
+                                        // Selected + Conflict: Red Background
+                                        drawRect(
+                                            color = ConflictColor,
+                                            topLeft = Offset(left, top),
+                                            size = Size(cellSize, cellSize)
+                                        )
+                                    } else {
+                                        // Unselected + Conflict: Circle Outline
+                                        val strokeWidth = cellSize * 0.1f
+                                        val radius = (cellSize - strokeWidth) / 2
+                                        drawCircle(
+                                            color = attackedQueenColor,
+                                            radius = radius * 0.85f,
+                                            center = center,
+                                            style = Stroke(width = strokeWidth),
+                                        )
+                                    }
+                                }
+                            } else if (isAttacked) {
+                                // No Queen + Attacked: Small Hint Dot
                                 drawCircle(
                                     color = markerColor,
                                     radius = cellSize * 0.15f,
