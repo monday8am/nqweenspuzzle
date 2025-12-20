@@ -21,11 +21,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.ui.game.CellState
 
 @Composable
 internal fun CanvasChessBoard(
-    cells: List<CellState>,
+    selectedQueen: Position?,
+    queens: Set<Position>,
+    visibleConflicts: Set<Position>,
+    visibleAttackedCells: Set<Position>,
     boardSize: Int,
     onCellTap: (Position) -> Unit,
     modifier: Modifier = Modifier,
@@ -45,13 +47,18 @@ internal fun CanvasChessBoard(
             }
     ) {
         CanvasBoard(
+            selectedQueen = selectedQueen,
             boardSize = boardSize,
-            cells = cells,
+            queens = queens,
+            visibleConflicts = visibleConflicts,
+            visibleAttackedCells = visibleAttackedCells,
         )
 
         PieceLayout(
+            selectedQueen = selectedQueen,
             boardSize = boardSize,
-            cells = cells,
+            queens = queens,
+            visibleConflicts = visibleConflicts,
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -60,17 +67,19 @@ internal fun CanvasChessBoard(
 @Composable
 private fun PieceLayout(
     boardSize: Int,
-    cells: List<CellState>,
+    selectedQueen: Position?,
+    queens: Set<Position>,
+    visibleConflicts: Set<Position>,
     modifier: Modifier = Modifier,
 ) {
-    // Filter only cells with queens to compose
-    val activePieces = cells.filter { it.hasQueen }
+    val activeQueens = queens.toList()
 
     Layout(
         content = {
-            activePieces.forEach { cell ->
+            activeQueens.forEach { position ->
                 QueenPiece(
-                    hasQueenAttacking = cell.hasQueenAttacking,
+                    isSelected = position == selectedQueen,
+                    isInConflict = position in visibleConflicts,
                     boardSize = boardSize,
                 )
             }
@@ -83,9 +92,9 @@ private fun PieceLayout(
 
         layout(constraints.maxWidth, constraints.maxHeight) {
             placeables.forEachIndexed { index, placeable ->
-                val cell = activePieces[index]
-                val row = cell.position.row
-                val col = cell.position.col
+                val position = activeQueens[index]
+                val row = position.row
+                val col = position.col
 
                 placeable.place(
                     x = col * cellSize,
@@ -98,7 +107,8 @@ private fun PieceLayout(
 
 @Composable
 private fun QueenPiece(
-    hasQueenAttacking: Boolean,
+    isInConflict: Boolean,
+    isSelected: Boolean? = null,
     boardSize: Int,
 ) {
     Box(
@@ -113,7 +123,7 @@ private fun QueenPiece(
         Text(
             text = "\u265B",
             fontSize = queenSize,
-            color = if (hasQueenAttacking) Color.White else QueenColor,
+            color = if (isInConflict && isSelected == true) Color.White else QueenColor,
             textAlign = TextAlign.Center,
         )
     }
@@ -122,7 +132,10 @@ private fun QueenPiece(
 @Composable
 private fun CanvasBoard(
     boardSize: Int,
-    cells: List<CellState>,
+    selectedQueen: Position?,
+    queens: Set<Position>,
+    visibleConflicts: Set<Position>,
+    visibleAttackedCells: Set<Position>,
     modifier: Modifier = Modifier
 ) {
     Spacer(
@@ -130,23 +143,25 @@ private fun CanvasBoard(
             .aspectRatio(1f)
             .drawWithCache {
                 val cellSize = size.width / boardSize
-                // Pre-calculate path/objects if needed based on size
-                // For a simple grid, calculations are cheap, but we avoid allocating Color/Stroke in loop
 
                 onDrawBehind {
-                    // Draw board background (static usually, but dynamic here based on simple math)
                     drawRect(LightSquareColor)
 
                     for (row in 0 until boardSize) {
                         for (col in 0 until boardSize) {
-                            val cellIndex = row * boardSize + col
-                            val cell = cells[cellIndex]
+                            val position = Position(row, col)
                             val left = col * cellSize
                             val top = row * cellSize
                             val center = Offset(left + cellSize / 2, top + cellSize / 2)
 
 
-                            if ((row + col) % 2 == 1) {
+                            // Check sets directly
+                            val isDarkSquare = (row + col) % 2 == 1
+                            val hasQueen = position in queens
+                            val isSelected = selectedQueen == position
+
+                            // 1. Draw Board Background (if dark square)
+                            if (isDarkSquare) {
                                 drawRect(
                                     color = DarkSquareColor,
                                     topLeft = Offset(left, top),
@@ -154,15 +169,7 @@ private fun CanvasBoard(
                                 )
                             }
 
-                            if (cell.hasQueenAttacking) {
-                                drawRect(
-                                    color = ConflictColor,
-                                    topLeft = Offset(left, top),
-                                    size = Size(cellSize, cellSize)
-                                )
-                            }
-
-                            if (cell.hasQueenAttacked) {
+                            if (hasQueen && (position in visibleConflicts) && !isSelected) {
                                 val strokeWidth = cellSize * 0.1f
                                 val radius = (cellSize - strokeWidth) / 2
                                 drawCircle(
@@ -171,7 +178,16 @@ private fun CanvasBoard(
                                     center = center,
                                     style = Stroke(width = strokeWidth),
                                 )
-                            } else if (cell.isEmptyAndAttacked) {
+                            } else if (hasQueen && position in visibleConflicts && isSelected) {
+                                drawRect(
+                                    color = ConflictColor,
+                                    topLeft = Offset(left, top),
+                                    size = Size(cellSize, cellSize)
+                                )
+                            }
+
+                            // 3. Draw Hints/Markers
+                            if (!hasQueen && position in visibleAttackedCells) {
                                 drawCircle(
                                     color = markerColor,
                                     radius = cellSize * 0.15f,

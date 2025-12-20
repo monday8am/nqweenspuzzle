@@ -26,7 +26,7 @@ fun GameBoard(
     state: BoardRenderState,
     onCellTap: (Position) -> Unit,
     modifier: Modifier = Modifier,
-    useCanvasBoard: Boolean = true,
+    useCanvasBoard: Boolean = false,
 ) {
     Column(
         verticalArrangement = spacedBy(4.dp),
@@ -39,13 +39,19 @@ fun GameBoard(
 
         if (useCanvasBoard) {
             CanvasChessBoard(
-                cells = state.cells,
+                selectedQueen = state.selectedQueen,
+                queens = state.queens,
+                visibleConflicts = state.visibleConflicts,
+                visibleAttackedCells = state.visibleAttackedCells,
                 boardSize = state.boardSize,
                 onCellTap = onCellTap,
             )
         } else {
             LayoutChessBoard(
-                cells = state.cells,
+                selectedQueen = state.selectedQueen,
+                queens = state.queens,
+                visibleConflicts = state.visibleConflicts,
+                visibleAttackedCells = state.visibleAttackedCells,
                 boardSize = state.boardSize,
                 onCellTap = onCellTap,
             )
@@ -63,7 +69,9 @@ private val inProgressState =
     BoardRenderState(
         boardSize = 8,
         difficulty = Difficulty.EASY,
-        cells = cells,
+        queens = setOf(Position(0, 0), Position(0, 5), Position(1, 2)),
+        selectedQueen = Position(0, 0),
+        visibleConflicts = setOf(Position(0, 0), Position(0, 5)),
         queensRemaining = 5,
         isSolved = false,
         calculationTime = 45L,

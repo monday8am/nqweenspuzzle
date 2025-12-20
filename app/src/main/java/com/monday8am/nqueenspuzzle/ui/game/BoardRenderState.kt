@@ -7,11 +7,12 @@ import com.monday8am.nqueenspuzzle.logic.models.Position
 data class BoardRenderState(
     val boardSize: Int,
     val difficulty: Difficulty,
-    val cells: List<CellState>,
+    val queens: Set<Position> = emptySet(),
+    val selectedQueen: Position? = null,
     val queensRemaining: Int,
     val isSolved: Boolean,
-    @get:VisibleForTesting
-    val calculationTime: Long = 0L,
     val visibleConflicts: Set<Position> = emptySet(),
     val visibleAttackedCells: Set<Position> = emptySet(),
+    @get:VisibleForTesting
+    val calculationTime: Long = 0L,
 )

@@ -57,6 +57,7 @@ class GameViewModel(
                             soundEffectManager?.play(SoundEffect.QUEEN_PLACED)
                         }
                     }
+
                     is GameAction.QueenMoved -> {
                         if (action.causedConflict) {
                             soundEffectManager?.play(SoundEffect.QUEEN_CONFLICT)
@@ -64,12 +65,19 @@ class GameViewModel(
                             soundEffectManager?.play(SoundEffect.QUEEN_PLACED)
                         }
                     }
+
                     is GameAction.GameWon -> {
                         soundEffectManager?.play(SoundEffect.GAME_WON)
                     }
-                    is GameAction.QueenRemoved -> { /* No sound */ }
-                    is GameAction.GameReset -> { /* No sound */ }
-                    null -> { /* Initial state */ }
+
+                    is GameAction.QueenRemoved -> { /* No sound */
+                    }
+
+                    is GameAction.GameReset -> { /* No sound */
+                    }
+
+                    null -> { /* Initial state */
+                    }
                 }
 
                 // Side effects: Check for win condition
@@ -97,32 +105,12 @@ class GameViewModel(
 
     private fun buildBoardRenderState(state: NQueensGame.NQueensState): BoardRenderState {
         val startTime = System.currentTimeMillis()
-        val cells =
-            buildList {
-                for (row in 0 until state.config.boardSize) {
-                    for (col in 0 until state.config.boardSize) {
-                        val position = Position(row, col)
-                        val hasQueen = position in state.queens
-                        val isConflicting = hasQueen && position in state.visibleConflicts
-                        val isAttacked = position in state.visibleAttackedCells && !hasQueen
-
-                        add(
-                            CellState(
-                                position = position,
-                                hasQueen = hasQueen,
-                                isConflicting = isConflicting,
-                                isAttacked = isAttacked,
-                                isSelected = position == state.selectedQueen,
-                            ),
-                        )
-                    }
-                }
-            }
 
         return BoardRenderState(
             boardSize = state.config.boardSize,
             difficulty = state.config.difficulty,
-            cells = cells,
+            queens = state.queens,
+            selectedQueen = state.selectedQueen,
             queensRemaining = state.config.boardSize - state.queens.size,
             visibleConflicts = state.visibleConflicts,
             visibleAttackedCells = state.visibleAttackedCells,
@@ -135,7 +123,7 @@ class GameViewModel(
         BoardRenderState(
             boardSize = game.config.boardSize,
             difficulty = Difficulty.EASY,
-            cells = emptyList(),
+            queens = emptySet(),
             queensRemaining = 8,
             isSolved = false,
         )

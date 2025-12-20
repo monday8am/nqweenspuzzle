@@ -18,24 +18,36 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.ui.game.CellState
-import kotlin.collections.forEach
 
 @Composable
 internal fun LayoutChessBoard(
-    cells: List<CellState>,
+    selectedQueen: Position?,
+    queens: Set<Position>,
+    visibleConflicts: Set<Position>,
+    visibleAttackedCells: Set<Position>,
     boardSize: Int,
     onCellTap: (Position) -> Unit,
 ) {
-    // Custom Layout for Fixed Grid
     Layout(
         content = {
-            cells.forEach { cell ->
-                Cell(
-                    cell = cell,
-                    boardSize = boardSize,
-                    onClick = { onCellTap(cell.position) },
-                )
+            for (row in 0 until boardSize) {
+                for (col in 0 until boardSize) {
+                    val position = Position(row, col)
+                    val hasQueen = position in queens
+                    val hasQueenAttacking = hasQueen && position in visibleConflicts && selectedQueen == position
+                    val hasQueenAttacked = hasQueen && position in visibleConflicts && selectedQueen != position
+                    val isEmptyAndAttacked = position in visibleAttackedCells && !hasQueen // Empty & Attacked
+
+                    Cell(
+                        hasQueen = hasQueen,
+                        hasQueenAttacking = hasQueenAttacking,
+                        hasQueenAttacked = hasQueenAttacked,
+                        isEmptyAndAttacked = isEmptyAndAttacked,
+                        isLightSquare = (row + col) % 2 == 0,
+                        boardSize = boardSize,
+                        onClick = { onCellTap(position) },
+                    )
+                }
             }
         },
         modifier =
@@ -45,7 +57,6 @@ internal fun LayoutChessBoard(
     ) { measurables, constraints ->
         val boardSize = boardSize
         val cellWidth = constraints.maxWidth / boardSize
-        // Ensure strict squareness if needed, or just use width for both dimensions if it's a square board
         val cellConstraints =
             Constraints.fixed(
                 width = cellWidth,
@@ -69,14 +80,18 @@ internal fun LayoutChessBoard(
 
 @Composable
 private fun Cell(
-    cell: CellState,
+    hasQueen: Boolean,
+    hasQueenAttacking: Boolean,
+    hasQueenAttacked: Boolean,
+    isEmptyAndAttacked: Boolean,
+    isLightSquare: Boolean,
     boardSize: Int,
     onClick: () -> Unit,
 ) {
     val backgroundColor =
         when {
-            cell.hasQueenAttacking -> ConflictColor
-            cell.isLightSquare -> LightSquareColor
+            hasQueenAttacking -> ConflictColor
+            isLightSquare -> LightSquareColor
             else -> DarkSquareColor
         }
 
@@ -86,7 +101,7 @@ private fun Cell(
                 .aspectRatio(1f)
                 .drawBehind {
                     drawRect(color = backgroundColor)
-                    if (cell.hasQueenAttacked) {
+                    if (hasQueenAttacked) {
                         val strokeWidth = size.width * 0.1f
                         val radius = (size.minDimension - strokeWidth) / 2
                         // We shrink the radius slightly so the stroke doesn't get clipped
@@ -95,7 +110,7 @@ private fun Cell(
                             radius = radius * 0.85f,
                             style = Stroke(width = strokeWidth),
                         )
-                    } else if (cell.isEmptyAndAttacked) {
+                    } else if (isEmptyAndAttacked) {
                         drawCircle(
                             color = markerColor,
                             radius = size.minDimension * 0.15f,
@@ -105,7 +120,7 @@ private fun Cell(
                 }.clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        if (cell.hasQueen) {
+        if (hasQueen) {
             val queenSize =
                 when {
                     boardSize <= 4 -> 32.sp
@@ -115,7 +130,7 @@ private fun Cell(
             Text(
                 text = "\u265B",
                 fontSize = queenSize,
-                color = if (cell.hasQueenAttacking) Color.White else QueenColor,
+                color = if (hasQueenAttacking) Color.White else QueenColor,
                 textAlign = TextAlign.Center,
             )
         }
