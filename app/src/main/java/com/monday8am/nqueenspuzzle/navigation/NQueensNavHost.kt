@@ -14,8 +14,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.monday8am.nqueenspuzzle.audio.SoundEffectManager
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
 import com.monday8am.nqueenspuzzle.ui.game.GameScreen
+import com.monday8am.nqueenspuzzle.ui.game.GameSideEffect
 import com.monday8am.nqueenspuzzle.ui.game.GameViewModel
 import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import com.monday8am.nqueenspuzzle.ui.results.ResultsScreen
@@ -25,13 +27,18 @@ import com.monday8am.nqueenspuzzle.ui.results.ResultsViewModel
 fun NQueensNavHost(
     viewModel: GameViewModel,
     scoreRepository: ScoreRepository,
+    soundEffectManager: SoundEffectManager,
     navController: NavHostController = rememberNavController(),
 ) {
     LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is NavigationEvent.NavigateToResults -> {
-                    navController.navigate(event.route)
+        viewModel.sideEffects.collect { effect ->
+            when (effect) {
+                is GameSideEffect.NavigateToResults -> {
+                    navController.navigate(effect.route)
+                }
+
+                is GameSideEffect.PlaySound -> {
+                    soundEffectManager.play(effect.effect)
                 }
             }
         }

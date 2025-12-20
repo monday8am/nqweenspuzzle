@@ -2,7 +2,7 @@ package com.monday8am.nqueenspuzzle.ui.game.components
 
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.ui.game.CellState
+import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
 
 private const val boardSize = 8
 private val queenPositions = listOf(Position(0, 0), Position(1, 2), Position(0, 4)) // (0,0) and (0,4) conflict
@@ -73,31 +73,18 @@ private val attackedPositions =
         Position(3, 7),
     )
 
-internal val cells =
-    (0 until boardSize).flatMap { row ->
-        (0 until boardSize).map { col ->
-            val position = Position(row, col)
-            val hasQueen = queenPositions.contains(position)
-            CellState(
-                position = position,
-                hasQueen = hasQueen,
-                isAttacked = attackedPositions.contains(position) && !hasQueen,
-                isConflicting = (position == Position(0, 0) || position == Position(0, 4)), // Mark conflicting queens
-                isLightSquare = (row + col) % 2 != 0,
-                isSelected = if (hasQueen) position == Position(0, 0) else false,
-            )
-        }
-    }
-
 /**
  * Sample BoardRenderState for Compose previews.
  */
 internal val sampleBoardRenderState =
-    _root_ide_package_.com.monday8am.nqueenspuzzle.ui.game.BoardRenderState(
+    BoardRenderState(
         boardSize = boardSize,
         difficulty = Difficulty.EASY,
-        cells = cells,
         queensRemaining = boardSize - queenPositions.size,
+        queens = setOf(Position(0, 0), Position(0, 4), Position(1, 2)),
+        selectedQueen = Position(0, 0),
+        visibleConflicts = setOf(Position(0, 0), Position(0, 4)),
+        visibleAttackedCells = attackedPositions.toSet(),
         isSolved = false,
         calculationTime = 0L,
     )

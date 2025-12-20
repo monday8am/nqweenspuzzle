@@ -2,11 +2,12 @@ package com.monday8am.nqueenspuzzle.ui.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.monday8am.nqueenspuzzle.audio.SoundEffect
 import com.monday8am.nqueenspuzzle.logic.NQueensGame
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
+import com.monday8am.nqueenspuzzle.logic.models.GameAction
 import com.monday8am.nqueenspuzzle.logic.models.GameConfig
 import com.monday8am.nqueenspuzzle.logic.models.Position
-import com.monday8am.nqueenspuzzle.navigation.NavigationEvent
 import com.monday8am.nqueenspuzzle.navigation.ResultsRoute
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,7 +34,6 @@ sealed class UserAction {
     data object Reset : UserAction()
 }
 
-
 /**
  * ViewModel for the N-Queens game screen.
  * Acts as a thin adapter between the game engine and the UI.
@@ -41,22 +41,18 @@ sealed class UserAction {
 class GameViewModel(
     private val game: NQueensGame = NQueensGame(initialConfig = GameConfig()),
 ) : ViewModel() {
+    private val _sideEffects = Channel<GameSideEffect>()
+    val sideEffects = _sideEffects.receiveAsFlow()
+
     val renderState: StateFlow<BoardRenderState> =
         game.state
-            .onEach { state ->
-                // Side effects: Check for win condition
-                if (state.isSolved) {
-                    triggerWinNavigation(state.config.boardSize, state.elapsedTime)
-                }
-            }.map { state -> buildBoardRenderState(state) }
+            .onEach { state -> handleSideEffects(state) }
+            .map { state -> buildBoardRenderState(state) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.Eagerly,
                 initialValue = createEmptyBoardRenderState(),
             )
-
-    private val _navigationEvent = Channel<NavigationEvent>()
-    val navigationEvent = _navigationEvent.receiveAsFlow()
 
     fun dispatch(action: UserAction) {
         when (action) {
@@ -67,37 +63,43 @@ class GameViewModel(
         }
     }
 
-    private fun buildBoardRenderState(state: NQueensGame.NQueensState): BoardRenderState {
-        val startTime = System.currentTimeMillis()
-        val cells =
-            buildList {
-                for (row in 0 until state.config.boardSize) {
-                    for (col in 0 until state.config.boardSize) {
-                        val position = Position(row, col)
-                        val hasQueen = position in state.queens
-                        val isConflicting = hasQueen && position in state.visibleConflicts
-                        val isAttacked = position in state.visibleAttackedCells && !hasQueen
-                        val isLightSquare = (row + col) % 2 == 0
-
-                        add(
-                            CellState(
-                                position = position,
-                                hasQueen = hasQueen,
-                                isConflicting = isConflicting,
-                                isAttacked = isAttacked,
-                                isLightSquare = isLightSquare,
-                                isSelected = position == state.selectedQueen,
-                            ),
-                        )
-                    }
+    private fun handleSideEffects(state: NQueensGame.NQueensState) {
+        when (val action = state.lastAction) {
+            is GameAction.QueenAdded,
+            is GameAction.QueenMoved,
+            is GameAction.QueenRemoved,
+            -> {
+                if (action.causedConflict()) {
+                    emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_CONFLICT))
+                } else {
+                    emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_PLACED))
                 }
             }
+
+            is GameAction.GameReset -> {
+                emitSideEffect(GameSideEffect.PlaySound(SoundEffect.RESET_GAME))
+            }
+
+            is GameAction.GameWon -> {
+                emitSideEffect(GameSideEffect.PlaySound(SoundEffect.GAME_WON))
+                triggerWinNavigation(state.config.boardSize, state.elapsedTime)
+            }
+
+            else -> { /* No side effects for other actions */ }
+        }
+    }
+
+    private fun buildBoardRenderState(state: NQueensGame.NQueensState): BoardRenderState {
+        val startTime = System.currentTimeMillis()
 
         return BoardRenderState(
             boardSize = state.config.boardSize,
             difficulty = state.config.difficulty,
-            cells = cells,
+            queens = state.queens,
+            selectedQueen = state.selectedQueen,
             queensRemaining = state.config.boardSize - state.queens.size,
+            visibleConflicts = state.visibleConflicts,
+            visibleAttackedCells = state.visibleAttackedCells,
             isSolved = state.isSolved,
             calculationTime = state.calculationTime + (System.currentTimeMillis() - startTime),
         )
@@ -107,7 +109,7 @@ class GameViewModel(
         BoardRenderState(
             boardSize = game.config.boardSize,
             difficulty = Difficulty.EASY,
-            cells = emptyList(),
+            queens = emptySet(),
             queensRemaining = 8,
             isSolved = false,
         )
@@ -116,16 +118,20 @@ class GameViewModel(
         boardSize: Int,
         gameTimeMillis: Long,
     ) {
+        emitSideEffect(
+            GameSideEffect.NavigateToResults(
+                route =
+                    ResultsRoute(
+                        boardSize = boardSize,
+                        elapsedSeconds = gameTimeMillis / 1000,
+                    ),
+            ),
+        )
+    }
+
+    private fun emitSideEffect(effect: GameSideEffect) {
         viewModelScope.launch {
-            _navigationEvent.send(
-                NavigationEvent.NavigateToResults(
-                    route =
-                        ResultsRoute(
-                            boardSize = boardSize,
-                            elapsedSeconds = gameTimeMillis / 1000,
-                        ),
-                ),
-            )
+            _sideEffects.send(effect)
         }
     }
 }
