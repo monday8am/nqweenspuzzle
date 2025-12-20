@@ -47,7 +47,7 @@ class GameViewModel(
     val renderState: StateFlow<BoardRenderState> =
         game.state
             .onEach { state -> handleSideEffects(state) }
-            .map { state -> buildBoardRenderState(state) }
+            .map { state -> state.toRenderState() }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.Eagerly,
@@ -68,7 +68,7 @@ class GameViewModel(
             is GameAction.QueenAdded,
             is GameAction.QueenMoved,
             is GameAction.QueenRemoved,
-            -> {
+                -> {
                 if (action.causedConflict()) {
                     emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_CONFLICT))
                 } else {
@@ -85,24 +85,9 @@ class GameViewModel(
                 triggerWinNavigation(state.config.boardSize, state.elapsedTime)
             }
 
-            else -> { /* No side effects for other actions */ }
+            else -> { /* No side effects for other actions */
+            }
         }
-    }
-
-    private fun buildBoardRenderState(state: NQueensGame.NQueensState): BoardRenderState {
-        val startTime = System.currentTimeMillis()
-
-        return BoardRenderState(
-            boardSize = state.config.boardSize,
-            difficulty = state.config.difficulty,
-            queens = state.queens,
-            selectedQueen = state.selectedQueen,
-            queensRemaining = state.config.boardSize - state.queens.size,
-            visibleConflicts = state.visibleConflicts,
-            visibleAttackedCells = state.visibleAttackedCells,
-            isSolved = state.isSolved,
-            calculationTime = state.calculationTime + (System.currentTimeMillis() - startTime),
-        )
     }
 
     private fun createEmptyBoardRenderState(): BoardRenderState =

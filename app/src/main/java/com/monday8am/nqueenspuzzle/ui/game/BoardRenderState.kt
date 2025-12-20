@@ -1,6 +1,7 @@
 package com.monday8am.nqueenspuzzle.ui.game
 
 import androidx.annotation.VisibleForTesting
+import com.monday8am.nqueenspuzzle.logic.NQueensGame
 import com.monday8am.nqueenspuzzle.logic.models.Difficulty
 import com.monday8am.nqueenspuzzle.logic.models.Position
 
@@ -54,3 +55,17 @@ data class CellState(
     val isAttacked: Boolean,
     val isSelected: Boolean,
 )
+
+fun NQueensGame.NQueensState.toRenderState(): BoardRenderState {
+    return BoardRenderState(
+        boardSize = config.boardSize,
+        difficulty = config.difficulty,
+        queens = queens,
+        selectedQueen = selectedQueen,
+        queensRemaining = config.boardSize - queens.size,
+        visibleConflicts = visibleConflicts,
+        visibleAttackedCells = visibleAttackedCells,
+        isSolved = isSolved,
+        calculationTime = calculationTime,
+    )
+}
