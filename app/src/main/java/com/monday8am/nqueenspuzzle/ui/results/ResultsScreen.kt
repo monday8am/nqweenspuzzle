@@ -199,7 +199,6 @@ private fun CompletionCard(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
         ) {
-
             Column(
                 modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

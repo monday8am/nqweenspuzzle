@@ -20,19 +20,17 @@ sealed class GameAction {
 
     data object GameReset : GameAction()
 
-    fun updateConflict(value: Boolean): GameAction {
-        return when (this) {
+    fun updateConflict(value: Boolean): GameAction =
+        when (this) {
             is QueenAdded -> copy(causedConflict = value)
             is QueenMoved -> copy(causedConflict = value)
             else -> this
         }
-    }
 
-    fun causedConflict(): Boolean {
-        return when (this) {
+    fun causedConflict(): Boolean =
+        when (this) {
             is QueenAdded -> causedConflict
             is QueenMoved -> causedConflict
             else -> false
         }
-    }
 }

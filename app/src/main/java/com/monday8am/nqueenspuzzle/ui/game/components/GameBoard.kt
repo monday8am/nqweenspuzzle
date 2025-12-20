@@ -25,7 +25,7 @@ internal fun GameBoard(
     state: BoardRenderState,
     onCellTap: (Position) -> Unit,
     modifier: Modifier = Modifier,
-    useCanvasBoard: Boolean = false,
+    useCanvasBoard: Boolean = true,
 ) {
     Column(
         verticalArrangement = spacedBy(4.dp),
@@ -75,4 +75,3 @@ private fun CanvasBoardPreview() {
         useCanvasBoard = true,
     )
 }
-

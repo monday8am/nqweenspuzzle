@@ -30,18 +30,19 @@ internal fun CanvasChessBoard(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier
-            .aspectRatio(1f)
-            .pointerInput(state.boardSize) {
-                detectTapGestures { offset ->
-                    val cellSize = size.width / state.boardSize
-                    val col = (offset.x / cellSize).toInt()
-                    val row = (offset.y / cellSize).toInt()
-                    if (col in 0 until state.boardSize && row in 0 until state.boardSize) {
-                        onCellTap(Position(row, col))
+        modifier =
+            modifier
+                .aspectRatio(1f)
+                .pointerInput(state.boardSize) {
+                    detectTapGestures { offset ->
+                        val cellSize = size.width / state.boardSize
+                        val col = (offset.x / cellSize).toInt()
+                        val row = (offset.y / cellSize).toInt()
+                        if (col in 0 until state.boardSize && row in 0 until state.boardSize) {
+                            onCellTap(Position(row, col))
+                        }
                     }
-                }
-            }
+                },
     ) {
         CanvasBoard(
             state = state,
@@ -49,7 +50,7 @@ internal fun CanvasChessBoard(
 
         PieceLayout(
             state = state,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
     }
 }
@@ -86,7 +87,7 @@ private fun PieceLayout(
 
                 placeable.place(
                     x = col * cellSize,
-                    y = row * cellSize
+                    y = row * cellSize,
                 )
             }
         }
@@ -100,7 +101,7 @@ private fun QueenPiece(
     boardSize: Int,
 ) {
     Box(
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         val queenSize =
             when {
@@ -120,74 +121,75 @@ private fun QueenPiece(
 @Composable
 private fun CanvasBoard(
     state: BoardRenderState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Spacer(
-        modifier = modifier
-            .aspectRatio(1f)
-            .drawWithCache {
-                val cellSize = size.width / state.boardSize
+        modifier =
+            modifier
+                .aspectRatio(1f)
+                .drawWithCache {
+                    val cellSize = size.width / state.boardSize
 
-                onDrawBehind {
-                    drawRect(LightSquareColor)
+                    onDrawBehind {
+                        drawRect(LightSquareColor)
 
-                    for (row in 0 until state.boardSize) {
-                        for (col in 0 until state.boardSize) {
-                            val position = Position(row, col)
-                            val left = col * cellSize
-                            val top = row * cellSize
-                            val center = Offset(left + cellSize / 2, top + cellSize / 2)
+                        for (row in 0 until state.boardSize) {
+                            for (col in 0 until state.boardSize) {
+                                val position = Position(row, col)
+                                val left = col * cellSize
+                                val top = row * cellSize
+                                val center = Offset(left + cellSize / 2, top + cellSize / 2)
 
-                            // Check logic
-                            val isDarkSquare = (row + col) % 2 == 1
-                            val hasQueen = state.isQueen(position)
-                            val isSelected = state.isSelected(position)
-                            val isConflicting = state.isConflicting(position)
-                            val isAttacked = state.isAttacked(position)
+                                // Check logic
+                                val isDarkSquare = (row + col) % 2 == 1
+                                val hasQueen = state.isQueen(position)
+                                val isSelected = state.isSelected(position)
+                                val isConflicting = state.isConflicting(position)
+                                val isAttacked = state.isAttacked(position)
 
-                            // 1. Draw Board Background (if dark square)
-                            if (isDarkSquare) {
-                                drawRect(
-                                    color = DarkSquareColor,
-                                    topLeft = Offset(left, top),
-                                    size = Size(cellSize, cellSize)
-                                )
-                            }
-
-                            // 2. Draw Conflicts or 3. Draw Hints
-                            if (hasQueen) {
-                                if (isConflicting) {
-                                    if (isSelected) {
-                                        // Selected + Conflict: Red Background
-                                        drawRect(
-                                            color = ConflictColor,
-                                            topLeft = Offset(left, top),
-                                            size = Size(cellSize, cellSize)
-                                        )
-                                    } else {
-                                        // Unselected + Conflict: Circle Outline
-                                        val strokeWidth = cellSize * 0.1f
-                                        val radius = (cellSize - strokeWidth) / 2
-                                        drawCircle(
-                                            color = attackedQueenColor,
-                                            radius = radius * 0.85f,
-                                            center = center,
-                                            style = Stroke(width = strokeWidth),
-                                        )
-                                    }
+                                // 1. Draw Board Background (if dark square)
+                                if (isDarkSquare) {
+                                    drawRect(
+                                        color = DarkSquareColor,
+                                        topLeft = Offset(left, top),
+                                        size = Size(cellSize, cellSize),
+                                    )
                                 }
-                            } else if (isAttacked) {
-                                // No Queen + Attacked: Small Hint Dot
-                                drawCircle(
-                                    color = markerColor,
-                                    radius = cellSize * 0.15f,
-                                    center = center,
-                                    style = Fill,
-                                )
+
+                                // 2. Draw Conflicts or 3. Draw Hints
+                                if (hasQueen) {
+                                    if (isConflicting) {
+                                        if (isSelected) {
+                                            // Selected + Conflict: Red Background
+                                            drawRect(
+                                                color = ConflictColor,
+                                                topLeft = Offset(left, top),
+                                                size = Size(cellSize, cellSize),
+                                            )
+                                        } else {
+                                            // Unselected + Conflict: Circle Outline
+                                            val strokeWidth = cellSize * 0.1f
+                                            val radius = (cellSize - strokeWidth) / 2
+                                            drawCircle(
+                                                color = attackedQueenColor,
+                                                radius = radius * 0.85f,
+                                                center = center,
+                                                style = Stroke(width = strokeWidth),
+                                            )
+                                        }
+                                    }
+                                } else if (isAttacked) {
+                                    // No Queen + Attacked: Small Hint Dot
+                                    drawCircle(
+                                        color = markerColor,
+                                        radius = cellSize * 0.15f,
+                                        center = center,
+                                        style = Fill,
+                                    )
+                                }
                             }
                         }
                     }
-                }
-            }
+                },
     )
 }

@@ -34,7 +34,6 @@ sealed class UserAction {
     data object Reset : UserAction()
 }
 
-
 /**
  * ViewModel for the N-Queens game screen.
  * Acts as a thin adapter between the game engine and the UI.
@@ -42,7 +41,6 @@ sealed class UserAction {
 class GameViewModel(
     private val game: NQueensGame = NQueensGame(initialConfig = GameConfig()),
 ) : ViewModel() {
-
     private val _sideEffects = Channel<GameSideEffect>()
     val sideEffects = _sideEffects.receiveAsFlow()
 
@@ -69,7 +67,8 @@ class GameViewModel(
         when (val action = state.lastAction) {
             is GameAction.QueenAdded,
             is GameAction.QueenMoved,
-            is GameAction. QueenRemoved -> {
+            is GameAction.QueenRemoved,
+            -> {
                 if (action.causedConflict()) {
                     emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_CONFLICT))
                 } else {
