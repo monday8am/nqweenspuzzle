@@ -4,7 +4,7 @@ An Android puzzle game based on the classic [N-Queens problem](https://en.wikipe
 
 ## Demo
 
-Demo video: [N-Queens Puzzle](https://github.com/monday8am/nqweenspuzzle/blob/main/assets/n-queens-puzzle.mp4)
+N-Queens Puzzle Demo video: [Download](https://github.com/monday8am/nqweenspuzzle/blob/main/assets/n-queens-puzzle.mp4) , [Google link](https://photos.app.goo.gl/rYPGTeHGHZWSTKii7)
 
 Snapshots:
 
