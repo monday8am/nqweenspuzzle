@@ -5,9 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -17,9 +16,9 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.sp
+import com.monday8am.nqueenspuzzle.R
 import com.monday8am.nqueenspuzzle.logic.models.Position
 import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
 
@@ -68,7 +67,6 @@ private fun PieceLayout(
                 QueenPiece(
                     isInConflict = state.isConflicting(position),
                     isSelected = state.isSelected(position),
-                    boardSize = state.boardSize,
                 )
             }
         },
@@ -76,7 +74,12 @@ private fun PieceLayout(
     ) { measurables, constraints ->
         val boardSize = state.boardSize
         val cellSize = constraints.maxWidth / boardSize
-        val pieceConstraints = Constraints.fixed(cellSize, cellSize)
+        val pieceConstraints = Constraints(
+            minWidth = 0,
+            maxWidth = cellSize,
+            minHeight = 0,
+            maxHeight = cellSize
+        )
         val placeables = measurables.map { it.measure(pieceConstraints) }
 
         layout(constraints.maxWidth, constraints.maxHeight) {
@@ -85,9 +88,13 @@ private fun PieceLayout(
                 val row = position.row
                 val col = position.col
 
+                // Center the piece within the cell
+                val xPos = col * cellSize + (cellSize - placeable.width) / 2
+                val yPos = row * cellSize + (cellSize - placeable.height) / 2
+
                 placeable.place(
-                    x = col * cellSize,
-                    y = row * cellSize,
+                    x = xPos,
+                    y = yPos,
                 )
             }
         }
@@ -97,25 +104,15 @@ private fun PieceLayout(
 @Composable
 private fun QueenPiece(
     isInConflict: Boolean,
+    modifier: Modifier = Modifier,
     isSelected: Boolean? = null,
-    boardSize: Int,
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
-    ) {
-        val queenSize =
-            when {
-                boardSize <= 4 -> 32.sp
-                boardSize <= 6 -> 28.sp
-                else -> 24.sp
-            }
-        Text(
-            text = "\u265B",
-            fontSize = queenSize,
-            color = if (isInConflict && isSelected == true) Color.White else QueenColor,
-            textAlign = TextAlign.Center,
-        )
-    }
+    Icon(
+        painterResource(R.drawable.queen),
+        contentDescription = "queen",
+        tint = if (isInConflict && isSelected == true) Color.White else QueenColor,
+        modifier = modifier.fillMaxSize(0.6f),
+    )
 }
 
 @Composable
@@ -172,7 +169,7 @@ private fun CanvasBoard(
                                             val radius = (cellSize - strokeWidth) / 2
                                             drawCircle(
                                                 color = attackedQueenColor,
-                                                radius = radius * 0.85f,
+                                                radius = radius * 0.87f,
                                                 center = center,
                                                 style = Stroke(width = strokeWidth),
                                             )

@@ -8,6 +8,6 @@ data class GameConfig(
     val difficulty: Difficulty = Difficulty.EASY,
 ) {
     init {
-        require(boardSize in BOARD_MIN_SIZE..BOARD_MAX_SIZE) { "Board size must be between 4 and 25" }
+        require(boardSize in BOARD_MIN_SIZE..BOARD_MAX_SIZE) { "Board size must be between $BOARD_MIN_SIZE and $BOARD_MAX_SIZE" }
     }
 }

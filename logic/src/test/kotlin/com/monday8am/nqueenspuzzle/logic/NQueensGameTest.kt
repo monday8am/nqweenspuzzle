@@ -68,7 +68,7 @@ class NQueensGameTest {
         val pTarget = pos(2, 5)
 
         // Setup: Place two queens on same row. The second one (pConflict) becomes selected.
-        game.placeQueens(pStart, pConflict)
+        game.placeQueens(listOf(pStart, pConflict))
 
         // Act: Move the selected queen (pConflict) to a safe spot (pTarget)
         game.userMove(pTarget)
@@ -86,7 +86,7 @@ class NQueensGameTest {
     fun `game detects solved state`() {
         val game = NQueensGame(initialConfig = GameConfig(boardSize = 4))
 
-        game.placeQueens(*SOLVED_4X4_MOVES)
+        SOLVED_4X4_MOVES.forEach { game.userMove(it) }
 
         with(game.state.value) {
             assertTrue("Game should be marked solved", isSolved)
@@ -97,7 +97,7 @@ class NQueensGameTest {
     @Test
     fun `moves are ignored after game is solved`() {
         val game = NQueensGame(initialConfig = GameConfig(boardSize = 4))
-        game.placeQueens(*SOLVED_4X4_MOVES)
+        SOLVED_4X4_MOVES.forEach { game.userMove(it) }
 
         assertTrue(game.state.value.isSolved)
 
@@ -115,7 +115,7 @@ class NQueensGameTest {
     @Test
     fun `restart resets board and timer`() {
         val game = NQueensGame()
-        game.placeQueens(pos(0, 0), pos(1, 2))
+        game.placeQueens(listOf(pos(0, 0), pos(1, 2)))
 
         // Ensure timer started
         assertNotNull(game.state.value.gameStartTime)
@@ -156,7 +156,7 @@ class NQueensGameTest {
         val p2 = pos(0, 3) // Row conflict
 
         // 1. Check Conflicts
-        game.placeQueens(p1, p2)
+        game.placeQueens(listOf(p1, p2))
         with(game.state.value) {
             assertTrue(visibleConflicts.contains(p1))
             assertTrue(visibleConflicts.contains(p2))
@@ -192,7 +192,7 @@ class NQueensGameTest {
         val p1 = pos(0, 0)
         val p2 = pos(0, 3) // Row conflict
 
-        game.placeQueens(p1, p2) // p2 is now selected because it was placed last
+        game.placeQueens(listOf(p1, p2)) // p2 is now selected because it was placed last
 
         with(game.state.value) {
             assertTrue("Selected conflicting queen is marked", visibleConflicts.contains(p2))
@@ -209,7 +209,7 @@ class NQueensGameTest {
     ) = Position(r, c)
 
     // Helper to simulate multiple moves
-    private fun NQueensGame.placeQueens(vararg positions: Position) {
+    private fun NQueensGame.placeQueens(positions: List<Position>) {
         positions.forEach { this.userMove(it) }
     }
 
