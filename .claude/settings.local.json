@@ -12,7 +12,8 @@
       "Bash(else echo \"File not found\")",
       "Bash(fi)",
       "Bash(grep:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "WebSearch"
     ]
   }
 }

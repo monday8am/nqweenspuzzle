@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
@@ -34,6 +35,7 @@ internal fun CanvasChessBoard(
         modifier =
             modifier
                 .aspectRatio(1f)
+                .testTag("chess_board")
                 .pointerInput(state.boardSize) {
                     detectTapGestures { offset ->
                         val cellSize = size.width.toFloat() / state.boardSize
