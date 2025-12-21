@@ -8,10 +8,11 @@ Demo video: [N-Queens Puzzle](assets/n-queens-puzzle.mp4)
 
 Snapshots:
 
-<img src="assets/n-queens-puzzle1.png" width="200">
-<img src="assets/n-queens-puzzle2.png" width="200">
-<img src="assets/n-queens-puzzle3.png" width="200">
-
+<p align="center">
+  <img src="assets/n-queens-puzzle1.jpg" alt="Star" width="32%">
+  <img src="assets/n-queens-puzzle2.jpg" alt="Game" width="32%">
+  <img src="assets/n-queens-puzzle3.jpg" alt="Score" width="32%">
+</p>
 
 ## Features
 
