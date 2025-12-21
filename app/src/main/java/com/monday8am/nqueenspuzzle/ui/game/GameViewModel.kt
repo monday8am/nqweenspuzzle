@@ -68,7 +68,7 @@ class GameViewModel(
             is GameAction.QueenAdded,
             is GameAction.QueenMoved,
             is GameAction.QueenRemoved,
-                -> {
+            -> {
                 if (action.causedConflict()) {
                     emitSideEffect(GameSideEffect.PlaySound(SoundEffect.QUEEN_CONFLICT))
                 } else {
@@ -85,7 +85,7 @@ class GameViewModel(
                 triggerWinNavigation(state.config.boardSize, state.elapsedTime)
             }
 
-            else -> { /* No side effects for other actions */
+            else -> { // No side effects for other actions
             }
         }
     }

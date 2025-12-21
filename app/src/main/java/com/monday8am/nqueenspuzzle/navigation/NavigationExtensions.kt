@@ -12,9 +12,7 @@ import com.monday8am.nqueenspuzzle.ui.game.UserAction
 import com.monday8am.nqueenspuzzle.ui.results.ResultsScreen
 import com.monday8am.nqueenspuzzle.ui.results.ResultsViewModel
 
-fun NavGraphBuilder.gameScreen(
-    viewModel: GameViewModel,
-) {
+fun NavGraphBuilder.gameScreen(viewModel: GameViewModel) {
     composable<GameRoute> {
         GameScreen(viewModel = viewModel)
     }

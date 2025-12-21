@@ -74,12 +74,13 @@ private fun PieceLayout(
     ) { measurables, constraints ->
         val boardSize = state.boardSize
         val cellSize = constraints.maxWidth / boardSize
-        val pieceConstraints = Constraints(
-            minWidth = 0,
-            maxWidth = cellSize,
-            minHeight = 0,
-            maxHeight = cellSize
-        )
+        val pieceConstraints =
+            Constraints(
+                minWidth = 0,
+                maxWidth = cellSize,
+                minHeight = 0,
+                maxHeight = cellSize,
+            )
         val placeables = measurables.map { it.measure(pieceConstraints) }
 
         layout(constraints.maxWidth, constraints.maxHeight) {

@@ -45,13 +45,12 @@ class ResultsViewModel(
         ): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return ResultsViewModel(
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    ResultsViewModel(
                         scoreRepository = scoreRepository,
                         boardSize = boardSize,
                         elapsedSeconds = elapsedSeconds,
                     ) as T
-                }
             }
     }
 }

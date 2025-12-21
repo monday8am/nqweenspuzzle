@@ -56,8 +56,8 @@ data class CellState(
     val isSelected: Boolean,
 )
 
-fun NQueensGame.NQueensState.toRenderState(): BoardRenderState {
-    return BoardRenderState(
+fun NQueensGame.NQueensState.toRenderState(): BoardRenderState =
+    BoardRenderState(
         boardSize = config.boardSize,
         difficulty = config.difficulty,
         queens = queens,
@@ -68,4 +68,3 @@ fun NQueensGame.NQueensState.toRenderState(): BoardRenderState {
         isSolved = isSolved,
         calculationTime = calculationTime,
     )
-}
