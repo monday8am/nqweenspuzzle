@@ -4,9 +4,14 @@ An Android puzzle game based on the classic [N-Queens problem](https://en.wikipe
 
 ## Demo
 
-<video src="video/n-queens-puzzle.mp4" controls width="640">
-  Your browser does not support the video tag.
-</video>
+Demo video: [N-Queens Puzzle](assets/n-queens-puzzle.mp4)
+
+Snapshots:
+
+<img src="assets/n-queens-puzzle1.png" width="200">
+<img src="assets/n-queens-puzzle2.png" width="200">
+<img src="assets/n-queens-puzzle3.png" width="200">
+
 
 ## Features
 
@@ -84,14 +89,16 @@ While these states share similar fields, they are kept separate to maintain a cl
 
 The project implements some optimizations to ensure smooth performance even for larger board sizes:
 
-1. Rendering Optimization
+1. Rendering Optimization:
+
 The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system. There are two layers of composables, one for the board (CanvasBoard) and one for the pieces (PieceLayout). 
 
 - **CanvasBoard**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node. It uses **`drawWithCache`** to cache static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
 - **PieceLayout**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
 - **Geometric Tap Detection**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
 
-2. Computational Efficiency
+2. Computational Efficiency:
+
 - **Bit-Packed `Position`**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
 - **$O(N)$ Conflict Detection**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
 
