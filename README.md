@@ -40,9 +40,9 @@ N-Queens Puzzle/
 
 There are three levels of logic separation for the game code:
 
-1. *Pure Chess Logic*: Pure functions with no state or side effects. Platform-agnostic and easily testable.
-2. *Game Implementation*: Manages game state using Kotlin `StateFlow`. Orchestrates the chess logic and handles user moves.
-3. *Presentation Layer*: Thin adapter between game engine and the Android platform. Transforms game state to presentation state and handles side effects.
+1. *NQueensLogic*: Pure chess logic functions with no state or side effects. Platform-agnostic and easily testable.
+2. *NQueensGame*: Manages game state using Kotlin `StateFlow`. Orchestrates the chess logic and handles user moves.
+3. *GameViewModel*: Thin adapter between game engine and the Android platform. Transforms game state to presentation state and handles side effects.
 
 ### Data Flow
 
@@ -105,19 +105,139 @@ The `GameBoard` replaces the traditional "grid of cells" approach (which yields 
 
 ## Testing Strategy
 
-Main part of the application logic is available outside the Composables, so it can be tested in isolation.
+The project implements a multi-layered testing strategy that validates logic, presentation, user interactions, and visual rendering. The main application logic is kept outside Composables, enabling isolated testing at each layer.
 
-**Test Files**:
-- `logic/src/test/kotlin/.../NQueensLogicTest.kt` - Pure chess logic tests
-- `logic/src/test/kotlin/.../NQueensGameTest.kt` - Game state management tests
-- `app/src/test/java/.../GameViewModelTest.kt` - Presentation logic tests
+### Testing Layers
 
+#### 1. Pure Logic Tests (JVM Unit Tests)
+**Location**: `logic/src/test/kotlin/`
 
-**Testing approach**:
-- **Unit tests** for pure chess logic (NQueensLogic)
-- **StateFlow testing** for reactive game implementation (NQueensGame)
-- **ViewModel testing** for state transformation and side effects
-- **UI tests** for Compose components and user interactions
+- `NQueensLogicTest.kt` - Pure chess logic (conflict detection, solution validation)
+- `NQueensGameTest.kt` - Game state management and StateFlow behavior
+
+**Technology**: JUnit, Kotlin Coroutines Test
+**Speed**: Fastest (pure JVM, no Android dependencies)
+**Purpose**: Test game rules and state management in isolation
+
+#### 2. ViewModel & Presentation Tests (Roboelectric)
+**Location**: `app/src/test/java/.../GameViewModelTest.kt`
+
+Tests presentation logic, state transformations, and side effects.
+
+**Technology**: JUnit, Roboelectric
+**Coverage**: 37 tests covering:
+- Initial state and configuration
+- Queen placement, removal, and movement logic
+- Conflict detection and visual feedback
+- Win condition detection
+- Difficulty and board size changes
+- Reset functionality
+
+#### 3. UI Interaction Tests (Roboelectric + Compose)
+**Location**: `app/src/test/java/.../ui/game/components/GameBoardUITest.kt`
+
+Tests user interactions with Compose components without requiring an emulator.
+
+**Technology**: Roboelectric, Compose Test Library
+**Speed**: Fast (10-100x faster than instrumented tests)
+**Coverage**:
+- Cell tap detection and coordinate mapping
+- Complete puzzle-solving workflows
+- Conflict detection workflows
+- Multi-step user interactions
+
+**Key Features**:
+- Uses `createComposeRule()` for Compose component testing
+- Simulates touch input with geometric coordinate calculations
+- Validates callbacks and state updates
+- Tests semantic UI elements (text, tags)
+
+**Example workflow test**:
+```kotlin
+@Test
+fun `workflow - solving a 4x4 puzzle by placing all queens correctly`() {
+    // Tests complete user journey: tap cells → place queens → verify solved state
+}
+```
+
+#### 4. Visual Regression Tests (Screenshot Testing)
+**Location**: `app/src/screenshotTest/java/.../components/GameBoardScreenshotTest.kt`
+
+Uses Google's experimental Compose Preview Screenshot Testing framework to catch unintended visual changes.
+
+**Technology**: Compose Preview Screenshot Testing (alpha)
+**Reference Images**: `app/src/screenshotTestDebug/reference/`
+
+**Test Coverage**:
+- ✅ In-progress game state (8x8 board with queens and conflicts)
+- ✅ Solved state (4x4 board with winning solution)
+- ✅ Conflict highlighting (queens attacking each other)
+
+**How It Works**:
+1. Mark `@Preview` composables with `@PreviewTest` annotation
+2. Place tests in `screenshotTest` source set
+3. Run `./gradlew updateDebugScreenshotTest` to generate reference images
+4. Run `./gradlew validateDebugScreenshotTest` to validate against references
+
+**Best Practices**:
+- Keep screenshot count minimal (currently 3 strategic tests)
+- Check reference images into version control
+- Update references when UI changes are intentional
+- Document UI changes in PR descriptions
+
+### Running Tests
+
+```bash
+# Run all unit tests (logic + ViewModel)
+./gradlew test
+
+# Run app module unit tests (including Roboelectric UI tests)
+./gradlew :app:testDebugUnitTest
+
+# Update screenshot reference images
+./gradlew updateDebugScreenshotTest
+
+# Validate screenshots against references
+./gradlew validateDebugScreenshotTest
+
+# Run a single test class
+./gradlew test --tests "com.monday8am.nqueenspuzzle.logic.NQueensLogicTest"
+```
+
+### CI/CD Integration
+
+**Automated Tests on Every PR**:
+- Logic tests (pure JVM)
+- App unit tests (Roboelectric + ViewModel + UI interaction tests)
+- Debug APK build
+
+**Manual Screenshot Validation**:
+Screenshot validation is available as a manual GitHub Actions workflow:
+- Trigger the **"Validate Screenshot Tests"** workflow from the Actions tab
+- Validates screenshots against reference images
+- Uploads HTML diff reports as artifacts for review
+- Use when you want to verify visual changes before merging
+
+**Updating Screenshot References**:
+When you make intentional UI changes:
+1. Run locally: `./gradlew updateDebugScreenshotTest`
+2. Commit updated reference images
+3. Document changes in PR description
+
+Alternatively, trigger the **"Update Screenshot References"** workflow (manual) to update references on a specific branch directly from GitHub Actions.
+
+### Testing Philosophy
+
+**Pyramid Structure**:
+1. **Most tests**: Pure logic (fast, focused, no dependencies)
+2. **Medium tests**: ViewModel & UI interactions (Roboelectric)
+3. **Fewest tests**: Screenshot tests (strategic visual regression coverage)
+
+**Key Principles**:
+- Test behavior, not implementation
+- Keep screenshot tests minimal to avoid maintenance burden
+- Use Roboelectric for fast UI interaction testing
+- Validate user workflows, not just individual actions
 
 # What's missing or ommited
 
