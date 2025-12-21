@@ -12,9 +12,7 @@ An Android puzzle game based on the classic [N-Queens problem](https://en.wikipe
 - Three difficulty levels with varying hint systems
 - Real-time conflict validation and visual feedback
 - Win detection with celebration animations
-- Best times leaderboard
-- Sound effects for queen placement and victory
-- Clean Material 3 design with Jetpack Compose
+- Best times leaderboar
 
 ## Difficulty Levels
 
@@ -39,91 +37,26 @@ Implementation: See `NQueensGame.kt:121-147`
 
 ## Architecture
 
-The project follows clean architecture principles with a three-module structure:
+The project follows a regular Google Jetpack architecture with a three-module structure:
 
 ### Module Structure
 
 ```
 N-Queens Puzzle/
-├── :logic      # Pure Kotlin JVM - game logic
-├── :data       # Android library - persistence
-└── :app        # Android app - UI layer
+├── :logic      # Pure Kotlin JVM - game logic and models
+├── :data       # Android library - persistence layer using DataStore
+└── :app        # Android app - UI layer with components, ViewModels, navigation, theming
 ```
-
-**:logic** (Pure Kotlin JVM)
-- Pure game logic with no Android dependencies
-- Only depends on Kotlin Coroutines
-- Contains: `NQueensLogic`, `NQueensGame`, models
-- Location: `logic/src/main/kotlin/`
-
-**:data** (Android Library)
-- Persistence layer using DataStore
-- Manages score/leaderboard storage
-- Contains: `ScoreRepository`, `ScoreEntry`
-- Location: `data/src/main/kotlin/`
-
-**:app** (Android Application)
-- Presentation layer with Jetpack Compose
-- UI components, ViewModels, theming
-- Depends on both `:logic` and `:data`
-- Location: `app/src/main/java/`
 
 ### Three Levels of Logic Separation
 
-The architecture separates concerns across three distinct layers:
+There are three levels of logic separation for the game code:
 
-#### 1. Pure Chess Logic (`NQueensLogic`)
+1. *Pure Chess Logic*: Pure functions with no state or side effects. Platform-agnostic and easily testable.
+2. *Game Implementation*: Manages game state using Kotlin `StateFlow`. Orchestrates the chess logic and handles user moves.
+3. *Presentation Layer*: Thin adapter between game engine and the Android platform. Transforms game state to presentation state and handles side effects.
 
-**File**: `logic/src/main/kotlin/.../NQueensLogic.kt`
-
-Pure functions with no state or side effects. Platform-agnostic and easily testable.
-
-```kotlin
-object NQueensLogic {
-    fun hasConflict(a: Position, b: Position): Boolean
-    fun findConflictingQueens(queens: Set<Position>): Set<Position>
-    fun getAttackedCells(queen: Position, boardSize: Int): Set<Position>
-    fun isSolved(queens: Set<Position>, boardSize: Int): Boolean
-}
-```
-
-#### 2. Game Implementation (`NQueensGame`)
-
-**File**: `logic/src/main/kotlin/.../NQueensGame.kt`
-
-Manages game state using Kotlin `StateFlow`. Orchestrates the chess logic and handles user moves.
-
-```kotlin
-class NQueensGame {
-    data class NQueensState(
-        val queens: Set<Position>,
-        val selectedQueen: Position?,
-        val visibleConflicts: Set<Position>,
-        val visibleAttackedCells: Set<Position>,
-        // ... game state
-    )
-
-    val state: StateFlow<NQueensState>
-    fun userMove(position: Position)
-    fun restart(newConfig: GameConfig?)
-}
-```
-
-#### 3. Presentation Layer (`GameViewModel`)
-
-**File**: `app/src/main/java/.../ui/game/GameViewModel.kt`
-
-Thin adapter between game engine and UI. Transforms game state to presentation state and handles side effects.
-
-```kotlin
-class GameViewModel {
-    val renderState: StateFlow<BoardRenderState>
-    val sideEffects: Flow<GameSideEffect>
-    fun dispatch(action: UserAction)
-}
-```
-
-## Data Flow
+### Data Flow
 
 The application follows a unidirectional data flow pattern:
 
@@ -154,101 +87,39 @@ The ViewModel acts as a "think layer" that permits communication between all par
 - **User actions**: Dispatches user interactions to game logic
 - **Side effects**: Triggers sounds and navigation based on game events
 
-## State vs Actions
-
-The architecture distinguishes between state (what *is*) and actions (what *happened*):
-
-### State (What IS)
-
-Immutable snapshots representing the current game condition.
-
-**File**: `NQueensGame.NQueensState`
-
-```kotlin
-data class NQueensState(
-    val config: GameConfig,
-    val queens: Set<Position>,
-    val selectedQueen: Position?,
-    val gameStartTime: Long?,
-    val visibleConflicts: Set<Position>,
-    // ... persisted state
-)
-```
-
-State persists and drives UI rendering.
-
-### Actions (What HAPPENED)
-
-Transient events that occurred during gameplay.
-
-**File**: `logic/src/main/kotlin/.../models/GameAction.kt`
-
-```kotlin
-sealed class GameAction {
-    data class QueenAdded(val position: Position, val causedConflict: Boolean)
-    data class QueenRemoved(val position: Position)
-    data class QueenMoved(val from: Position, val to: Position, val causedConflict: Boolean)
-    data object GameWon
-    data object GameReset
-}
-```
-
-Actions are used for triggering side effects (sounds, animations) but are not stored.
-
 ### Conversion to Presentation
 
-The game state is converted to a pure presentation object:
+The game state is converted to a pure presentation object: **NQueensState → BoardRenderState**
 
-**NQueensState → BoardRenderState**
+While these states share similar fields, they are kept separate to maintain a clear boundary between the game engine and the UI:
 
-**File**: `app/src/main/java/.../ui/game/BoardRenderState.kt`
+*   **Domain vs. Presentation Purity**: `NQueensState` tracks the *absolute truth* of the game (internal timing, domain events). `BoardRenderState` tracks only what needs to be *drawn* (flattened config, derived counts like `queensRemaining`).
+*   **The Event Problem**: `NQueensState` contains `lastAction`. Stripping this when mapping to `BoardRenderState` prevents the UI from reacting to one-off logic events as persistent state changes.
+*   **Decoupled Testing**: `BoardRenderState` includes view-specific helpers (like `testCells`). Keeping them out of the `:logic` module ensures game rules can be tested without view-centric clutter.
+*   **Framework Independence**: This separation ensures the `:logic` module remains a pure Kotlin JVM library, completely unaware of Android or Compose implementation details.
 
-```kotlin
-data class BoardRenderState(
-    val boardSize: Int,
-    val queens: Set<Position>,
-    val queensRemaining: Int,
-    val visibleConflicts: Set<Position>,
-    val visibleAttackedCells: Set<Position>,
-    val isSolved: Boolean,
-)
-```
+## Optimizations and Performance
 
-**Why this separation?**
-- Game state contains full game information (actions, timestamps, internal state)
-- Presentation state contains only visual information needed by UI
-- ViewModel acts as translator between logic layer and platform layer
-- Clean separation enables independent testing of each layer
+The project implements several optimizations to ensure smooth performance even for larger board sizes:
 
-## Build & Test
+### 1. Rendering Optimization
+The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system.
+- **CanvasBoard**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node.
+- **`drawWithCache`**: Caches static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
+- **PieceLayout**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
 
-### Prerequisites
+### 2. State & Data Pipeline
+- **O(1) State Transformation**: The `GameViewModel` maps domain state to `BoardRenderState` without any loops. It uses `Set<Position>` for queens, conflicts, and attacks, enabling $O(1)$ lookups during the drawing phase.
+- **Zero-Allocation Loops**: The drawing loop uses primitive checks against the state sets, avoiding object allocations on every frame.
+- **Lazy Testability**: While the production UI uses sets for speed, a lazy `testCells: List<CellState>` property allows unit tests to assert on the full board state without impacting production performance.
 
-- JDK 17 or higher
-- Android SDK (Min SDK 26, Target SDK 36)
+### 3. Interaction & Side Effects
+- **Geometric Tap Detection**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
+- **Event-Driven Side Effects**: Sounds and navigation are treated as transient `GameSideEffect` events. This decouples the ViewModel from platform-specific services (like `SoundPool`) and ensures resources are properly managed by the Activity lifecycle.
 
-### Build
-
-```bash
-# Build the project
-./gradlew build
-
-# Install debug APK
-./gradlew installDebug
-```
-
-### Run Tests
-
-```bash
-# All unit tests
-./gradlew test
-
-# Specific test class
-./gradlew test --tests "com.monday8am.nqueenspuzzle.logic.NQueensLogicTest"
-
-# Instrumented tests (requires emulator/device)
-./gradlew connectedAndroidTest
-```
+### 4. Computational Efficiency
+- **Bit-Packed `Position`**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
+- **$O(N)$ Conflict Detection**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
 
 ## Testing Strategy
 
@@ -258,7 +129,7 @@ The project maintains strong test coverage across all architectural layers:
 - `logic/src/test/kotlin/.../NQueensLogicTest.kt` - Pure chess logic tests
 - `logic/src/test/kotlin/.../NQueensGameTest.kt` - Game state management tests
 - `app/src/test/java/.../GameViewModelTest.kt` - Presentation logic tests
-- `app/src/androidTest/java/.../ExampleInstrumentedTest.kt` - UI integration tests
+
 
 **Testing approach**:
 - **Unit tests** for pure chess logic (NQueensLogic)
@@ -266,23 +137,7 @@ The project maintains strong test coverage across all architectural layers:
 - **ViewModel testing** for state transformation and side effects
 - **UI tests** for Compose components and user interactions
 
-## Tech Stack
+## Build & Test
 
-**Language**: Kotlin 2.0.21
+Build and test like a regular Android project.
 
-**UI**:
-- Jetpack Compose (BOM 2024.09.00)
-- Material 3
-
-**Architecture**:
-- Kotlin Coroutines & Flow
-- StateFlow for reactive state management
-- Clean Architecture (logic/data/presentation separation)
-
-**Build**:
-- Gradle with Version Catalog (`gradle/libs.versions.toml`)
-- Android Gradle Plugin 8.13.2
-
-## License
-
-[Add your license here]

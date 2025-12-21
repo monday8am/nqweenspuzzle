@@ -1,6 +1,7 @@
 package com.monday8am.nqueenspuzzle.ui.results
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.monday8am.nqueenspuzzle.data.ScoreEntry
 import com.monday8am.nqueenspuzzle.data.ScoreRepository
@@ -34,5 +35,22 @@ class ResultsViewModel(
                 _scores.value = scoreList
             }
         }
+    }
+
+    companion object {
+        fun provideFactory(
+            scoreRepository: ScoreRepository,
+            boardSize: Int,
+            elapsedSeconds: Long,
+        ): ViewModelProvider.Factory =
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    ResultsViewModel(
+                        scoreRepository = scoreRepository,
+                        boardSize = boardSize,
+                        elapsedSeconds = elapsedSeconds,
+                    ) as T
+            }
     }
 }

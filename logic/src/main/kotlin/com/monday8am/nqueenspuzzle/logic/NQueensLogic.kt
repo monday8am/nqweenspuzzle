@@ -20,17 +20,26 @@ object NQueensLogic {
     }
 
     fun findConflictingQueens(queens: Set<Position>): Set<Position> {
-        val conflicting = mutableSetOf<Position>()
-        val queenList = queens.toList()
-        for (i in queenList.indices) {
-            for (j in i + 1 until queenList.size) {
-                if (hasConflict(queenList[i], queenList[j])) {
-                    conflicting.add(queenList[i])
-                    conflicting.add(queenList[j])
-                }
-            }
+        if (queens.size <= 1) return emptySet()
+
+        val rows = mutableMapOf<Int, Int>()
+        val cols = mutableMapOf<Int, Int>()
+        val diag1 = mutableMapOf<Int, Int>() // row - col
+        val diag2 = mutableMapOf<Int, Int>() // row + col
+
+        for (q in queens) {
+            rows[q.row] = rows.getOrDefault(q.row, 0) + 1
+            cols[q.col] = cols.getOrDefault(q.col, 0) + 1
+            diag1[q.row - q.col] = diag1.getOrDefault(q.row - q.col, 0) + 1
+            diag2[q.row + q.col] = diag2.getOrDefault(q.row + q.col, 0) + 1
         }
-        return conflicting
+
+        return queens.filter { q ->
+            rows[q.row]!! > 1 ||
+                    cols[q.col]!! > 1 ||
+                    diag1[q.row - q.col]!! > 1 ||
+                    diag2[q.row + q.col]!! > 1
+        }.toSet()
     }
 
     fun getAttackedCells(
