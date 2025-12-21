@@ -18,8 +18,11 @@ N-Queens Puzzle is an Android application built with Kotlin and Jetpack Compose.
 # Run a single unit test class
 ./gradlew test --tests "com.monday8am.nqueenspuzzle.ExampleUnitTest"
 
-# Run instrumented tests (requires emulator or device)
-./gradlew connectedAndroidTest
+# Update screenshot reference images
+./gradlew updateDebugScreenshotTest
+
+# Validate screenshots against references
+./gradlew validateDebugScreenshotTest
 
 # Clean build
 ./gradlew clean
@@ -39,8 +42,8 @@ N-Queens Puzzle is an Android application built with Kotlin and Jetpack Compose.
 
 - `app/src/main/java/` - Main Kotlin source code
 - `app/src/main/java/.../ui/theme/` - Compose theming (colors, typography, theme configuration)
-- `app/src/test/` - Unit tests (JUnit 4)
-- `app/src/androidTest/` - Instrumented tests (Espresso)
+- `app/src/test/` - Unit tests (JUnit 4, Roboelectric)
+- `app/src/screenshotTest/` - Screenshot tests (Compose Preview)
 
 ### Dependencies
 
