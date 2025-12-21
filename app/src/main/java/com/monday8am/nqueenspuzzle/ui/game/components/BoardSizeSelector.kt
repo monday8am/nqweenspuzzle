@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.monday8am.nqueenspuzzle.logic.models.BOARD_MAX_SIZE
-import com.monday8am.nqueenspuzzle.logic.models.BOARD_MIN_SIZE
+import com.monday8am.nqueenspuzzle.logic.BOARD_MAX_SIZE
+import com.monday8am.nqueenspuzzle.logic.BOARD_MIN_SIZE
 import kotlin.math.roundToInt
 
 @Composable

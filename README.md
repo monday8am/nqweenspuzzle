@@ -4,36 +4,18 @@ An Android puzzle game based on the classic [N-Queens problem](https://en.wikipe
 
 ## Demo
 
-> Add your demo video here (MP4, GIF, or YouTube link)
+<video src="video/n-queens-puzzle.mp4" controls width="640">
+  Your browser does not support the video tag.
+</video>
 
 ## Features
 
 - Interactive n×n chessboard (sizes 4-12)
 - Three difficulty levels with varying hint systems
+- Queens are moved if a conflict is detected to avoid extra taps for remove/add
 - Real-time conflict validation and visual feedback
 - Win detection with celebration animations
-- Best times leaderboar
-
-## Difficulty Levels
-
-The game offers three difficulty levels that control the amount of visual feedback:
-
-### Easy
-- **Conflict highlighting**: All conflicting queens are highlighted
-- **Attack visualization**: Selected queen's attack pattern is shown on the board
-- **Best for**: Learning the game mechanics
-
-### Medium
-- **Conflict highlighting**: All conflicting queens are highlighted
-- **Attack visualization**: None
-- **Best for**: Intermediate players who understand the rules
-
-### Hard
-- **Conflict highlighting**: Only the selected queen shows conflict (if conflicting)
-- **Attack visualization**: None
-- **Best for**: Advanced players seeking minimal hints
-
-Implementation: See `NQueensGame.kt:121-147`
+- Best times leaderboard
 
 ## Architecture
 
@@ -100,30 +82,22 @@ While these states share similar fields, they are kept separate to maintain a cl
 
 ## Optimizations and Performance
 
-The project implements several optimizations to ensure smooth performance even for larger board sizes:
+The project implements some optimizations to ensure smooth performance even for larger board sizes:
 
-### 1. Rendering Optimization
-The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system.
-- **CanvasBoard**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node.
-- **`drawWithCache`**: Caches static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
+1. Rendering Optimization
+The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system. There are two layers of composables, one for the board (CanvasBoard) and one for the pieces (PieceLayout). 
+
+- **CanvasBoard**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node. It uses **`drawWithCache`** to cache static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
 - **PieceLayout**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
-
-### 2. State & Data Pipeline
-- **O(1) State Transformation**: The `GameViewModel` maps domain state to `BoardRenderState` without any loops. It uses `Set<Position>` for queens, conflicts, and attacks, enabling $O(1)$ lookups during the drawing phase.
-- **Zero-Allocation Loops**: The drawing loop uses primitive checks against the state sets, avoiding object allocations on every frame.
-- **Lazy Testability**: While the production UI uses sets for speed, a lazy `testCells: List<CellState>` property allows unit tests to assert on the full board state without impacting production performance.
-
-### 3. Interaction & Side Effects
 - **Geometric Tap Detection**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
-- **Event-Driven Side Effects**: Sounds and navigation are treated as transient `GameSideEffect` events. This decouples the ViewModel from platform-specific services (like `SoundPool`) and ensures resources are properly managed by the Activity lifecycle.
 
-### 4. Computational Efficiency
+2. Computational Efficiency
 - **Bit-Packed `Position`**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
 - **$O(N)$ Conflict Detection**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
 
 ## Testing Strategy
 
-The project maintains strong test coverage across all architectural layers:
+Main part of the application logic is available outside the Composables, so it can be tested in isolation.
 
 **Test Files**:
 - `logic/src/test/kotlin/.../NQueensLogicTest.kt` - Pure chess logic tests
@@ -137,7 +111,13 @@ The project maintains strong test coverage across all architectural layers:
 - **ViewModel testing** for state transformation and side effects
 - **UI tests** for Compose components and user interactions
 
+# What's missing or ommited
+
+- There's not dependency injection for keeping the code simple
+- There's no Queen add / remove animation
+- No sound On/Off toggle (probably needed after some time playing)
+
 ## Build & Test
 
-Build and test like a regular Android project.
+Build and test like a regular Android project!
 

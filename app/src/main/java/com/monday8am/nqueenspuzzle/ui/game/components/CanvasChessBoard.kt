@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.Constraints
 import com.monday8am.nqueenspuzzle.R
 import com.monday8am.nqueenspuzzle.logic.models.Position
 import com.monday8am.nqueenspuzzle.ui.game.BoardRenderState
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 @Composable
 internal fun CanvasChessBoard(
@@ -34,7 +36,7 @@ internal fun CanvasChessBoard(
                 .aspectRatio(1f)
                 .pointerInput(state.boardSize) {
                     detectTapGestures { offset ->
-                        val cellSize = size.width / state.boardSize
+                        val cellSize = size.width.toFloat() / state.boardSize
                         val col = (offset.x / cellSize).toInt()
                         val row = (offset.y / cellSize).toInt()
                         if (col in 0 until state.boardSize && row in 0 until state.boardSize) {
@@ -70,16 +72,15 @@ private fun PieceLayout(
                 )
             }
         },
-        modifier = modifier,
     ) { measurables, constraints ->
         val boardSize = state.boardSize
-        val cellSize = constraints.maxWidth / boardSize
+        val cellSize = constraints.maxWidth.toFloat() / boardSize
         val pieceConstraints =
             Constraints(
                 minWidth = 0,
-                maxWidth = cellSize,
+                maxWidth = ceil(cellSize).toInt(),
                 minHeight = 0,
-                maxHeight = cellSize,
+                maxHeight = ceil(cellSize).toInt(),
             )
         val placeables = measurables.map { it.measure(pieceConstraints) }
 
@@ -89,13 +90,13 @@ private fun PieceLayout(
                 val row = position.row
                 val col = position.col
 
-                // Center the piece within the cell
-                val xPos = col * cellSize + (cellSize - placeable.width) / 2
-                val yPos = row * cellSize + (cellSize - placeable.height) / 2
+                // Center the piece within the cell using float positioning
+                val xPos = col * cellSize + (cellSize - placeable.width) / 2f
+                val yPos = row * cellSize + (cellSize - placeable.height) / 2f
 
                 placeable.place(
-                    x = xPos,
-                    y = yPos,
+                    x = xPos.roundToInt(),
+                    y = yPos.roundToInt(),
                 )
             }
         }
