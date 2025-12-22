@@ -133,10 +133,16 @@ The project implements a multi-layered testing strategy that validates logic, pr
 
 ### CI/CD Integration
 
-**Automated Tests on Every PR**:
+**[[Automated Unit Tests on Every PR](https://github.com/monday8am/nqueenspuzzle/actions/workflows/ci.yml)]**:
 - Logic tests (pure JVM)
 - App unit tests (Roboelectric + ViewModel + UI interaction tests)
 - Debug APK build
+
+**(EXPERIMENTAL) Manually triggered Screenshot tests (EXPERIMENTAL)**
+- [Update Screenshot Tests](https://github.com/monday8am/nqueenspuzzle/actions/workflows/update-screenshots.yml)
+- [Validate Screenshot Tests](https://github.com/monday8am/nqueenspuzzle/actions/workflows/validate-screenshots.yml)
+
+<img src="assets/screenshot-test-comparison.png" alt="screenshot-test-comparison" width="400">
 
 ## What's missing or omitted
 
