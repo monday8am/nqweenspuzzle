@@ -27,19 +27,23 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         compose = true
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
 
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+        }
+        //noinspection WrongGradleMethod
+        screenshotTests {
+            imageDifferenceThreshold = 0.05f  // 5% difference allowed (default is 0.05)
         }
     }
 
