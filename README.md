@@ -91,16 +91,16 @@ The project implements some optimizations to ensure smooth performance even for 
 
 1. Rendering Optimization:
 
-The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system. There are two layers of composables, one for the board (`CanvasChessBoard`) and one for the pieces (`PieceLayout`). 
+The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system. There are two layers of composables, one for the board (`CanvasBoard`) and one for the pieces (`PieceLayout`). 
 
-- **[CanvasChessBoard](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/CanvasChessBoard.kt)**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node. It uses **`drawWithCache`** to cache static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
-- **[PieceLayout](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/PieceLayout.kt)**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
-- **[Geometric Tap Detection](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/CanvasChessBoard.kt)**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
+- **[CanvasBoard](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/components/CanvasChessBoard.kt#L123-L196)**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node. It uses **`drawWithCache`** to cache static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
+- **[PieceLayout](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/components/CanvasChessBoard.kt#L62-L106)**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
+- **[Geometric Tap Detection](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/components/CanvasChessBoard.kt#L29-L59)**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
 
 2. Computational Efficiency:
 
-- **Bit-Packed [Position](app/src/main/java/com/monday8am/nqueenspuzzle/logic/Position.kt)**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
-- **$O(N)$ [Conflict Detection](app/src/main/java/com/monday8am/nqueenspuzzle/logic/NQueensLogic.kt)**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
+- **Bit-Packed [Position](logic/src/main/kotlin/com/monday8am/nqueenspuzzle/logic/models/Position.kt)**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
+- **$O(N)$ [Conflict Detection](logic/src/main/kotlin/com/monday8am/nqueenspuzzle/logic/NQueensLogic.kt#L22-L43)**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
 
 ## Testing
 
@@ -117,19 +117,19 @@ The project implements a multi-layered testing strategy that validates logic, pr
 
 **1. Pure Logic Tests (JVM Unit Tests)**
 - Pure chess logic (conflict detection, solution validation)
+- [NQueensLogicTest - 26 tests](logic/src/test/kotlin/com/monday8am/nqueenspuzzle/logic/NQueensLogicTest.kt)
 - Game state management and StateFlow behavior
-- [NQueensLogicTest - 26 tests](app/src/test/java/com/monday8am/nqueenspuzzle/logic/NQueensLogicTest.kt)
-- [NQueensStateTest - 11 test](app/src/test/java/com/monday8am/nqueenspuzzle/logic/NQueensGameTest.kt)
+- [NQueensGameTest - 11 test](logic/src/test/kotlin/com/monday8am/nqueenspuzzle/logic/NQueensGameTest.kt)
 
 **2. ViewModel & UI interaction Tests (Roboelectric)**
 - Tests presentation logic, state transformations, and side effects.
-- EXPERIMENTAL: Tests user interactions with Compose components without requiring an emulator.
 - [GameViewModelTest - 28 tests](app/src/test/java/com/monday8am/nqueenspuzzle/ui/game/GameViewModelTest.kt)
-- [GameBoardUITest - 3 test](app/src/test/java/com/monday8am/nqueenspuzzle/ui/game/GameBoardUITest.kt)
+- **EXPERIMENTAL**: Tests user interactions with Compose components without requiring an emulator.
+- [GameBoardUITest - 3 test](app/src/test/java/com/monday8am/nqueenspuzzle/ui/game/components/GameBoardUITest.kt)
 
-**3. EXPERIMENTAL: Visual Regression Tests (Screenshot Testing)**
-- Uses Google's experimental Compose Preview Screenshot Testing framework to catch unintended visual changes.
-- [GameScreenTest - 1 test](app/src/androidTest/java/com/monday8am/nqueenspuzzle/ui/game/GameScreenTest.kt)
+**3. Visual Regression Tests for ChessBoard (Screenshot Testing)**
+- **EXPERIMENTAL** Uses Google's experimental Compose Preview Screenshot Testing framework to catch unintended visual changes.
+- [GameBoardScreenshotTest - 3 test](app/src/screenshotTest/java/com/monday8am/nqueenspuzzle/ui/game/components/GameBoardScreenshotTest.kt)
 
 ### CI/CD Integration
 
