@@ -138,9 +138,9 @@ The project implements a multi-layered testing strategy that validates logic, pr
 - App unit tests (Roboelectric + ViewModel + UI interaction tests)
 - Debug APK build
 
-## What's missing or ommited
+## What's missing or omitted
 
-- There's not dependency injection for keeping the code simple
+- There's no dependency injection for keeping the code simple
 - There's no Queen add / remove animation
 - No sound On/Off toggle (probably needed after some time playing)
 
