@@ -83,7 +83,6 @@ While these states share similar fields, they are kept separate to maintain a cl
 
 *   **Domain vs. Presentation Purity**: `NQueensState` tracks the *absolute truth* of the game (internal timing, domain events). `BoardRenderState` tracks only what needs to be *drawn* (flattened config, derived counts like `queensRemaining`).
 *   **The Event Problem**: `NQueensState` contains `lastAction`. Stripping this when mapping to `BoardRenderState` prevents the UI from reacting to one-off logic events as persistent state changes.
-*   **Decoupled Testing**: `BoardRenderState` includes view-specific helpers (like `testCells`). Keeping them out of the `:logic` module ensures game rules can be tested without view-centric clutter.
 *   **Framework Independence**: This separation ensures the `:logic` module remains a pure Kotlin JVM library, completely unaware of Android or Compose implementation details.
 
 ## Optimizations and Performance
@@ -92,16 +91,16 @@ The project implements some optimizations to ensure smooth performance even for 
 
 1. Rendering Optimization:
 
-The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system. There are two layers of composables, one for the board (CanvasBoard) and one for the pieces (PieceLayout). 
+The `GameBoard` replaces the traditional "grid of cells" approach (which yields $N^2$ composables) with a custom **Canvas-based** rendering system. There are two layers of composables, one for the board (`CanvasChessBoard`) and one for the pieces (`PieceLayout`). 
 
-- **CanvasBoard**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node. It uses **`drawWithCache`** to cache static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
-- **PieceLayout**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
-- **Geometric Tap Detection**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
+- **[CanvasChessBoard](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/CanvasChessBoard.kt)**: Draws the entire checkerboard, conflicts, and markers in a single `Canvas` node. It uses **`drawWithCache`** to cache static drawing instructions (like the square pattern) to avoid redundant computation during recomposition.
+- **[PieceLayout](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/PieceLayout.kt)**: A custom `Layout` that only renders active pieces (Queens) based on the state, drastically reducing the node count to $1 (Canvas) + 1 (Layout) + N (Queens)$.
+- **[Geometric Tap Detection](app/src/main/java/com/monday8am/nqueenspuzzle/ui/game/CanvasChessBoard.kt)**: A single `pointerInput` on the board container calculates coordinates geometrically, removing the overhead of $N^2$ individual click listeners.
 
 2. Computational Efficiency:
 
-- **Bit-Packed `Position`**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
-- **$O(N)$ Conflict Detection**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
+- **Bit-Packed [Position](app/src/main/java/com/monday8am/nqueenspuzzle/logic/Position.kt)**: The coordinate system uses an `@JvmInline value class`. This packs `row` and `col` into a single 32-bit `Int` (16 bits each), eliminating object allocations for every cell reference and significantly reducing pressure on the garbage collector.
+- **$O(N)$ [Conflict Detection](app/src/main/java/com/monday8am/nqueenspuzzle/logic/NQueensLogic.kt)**: Replaced $O(N^2)$ pair-wise comparisons with a frequency-tracking algorithm. By hashing row, column, and diagonal "occupancy", the engine detects conflicts in linear time relative to the number of queens, ensuring consistent performance even on the largest supported boards.
 
 ## Testing
 
@@ -110,30 +109,27 @@ The `GameBoard` replaces the traditional "grid of cells" approach (which yields 
 The project implements a multi-layered testing strategy that validates logic, presentation, user interactions, and visual rendering. The main application logic is kept outside Composables, enabling isolated testing at each layer.
 
 **Pyramid Structure**:
-1. **Most tests**: Pure logic (fast, focused, no dependencies)
-2. **Medium tests**: ViewModel & UI interactions (Roboelectric)
+1. **Most tests**: Unit tests for pure logic (fast, focused, no dependencies)
+2. **Medium tests**: Unit tests for ViewModel & Roboelectric tests for UI interactions
 3. **Fewest tests**: Screenshot tests (strategic visual regression coverage)
-
-**Key Principles**:
-- Test behavior, not implementation
-- Keep screenshot tests minimal to avoid maintenance burden
-- Use Roboelectric for fast UI interaction testing
-- Validate user workflows, not just individual actions
 
 ### Testing Layers
 
 **1. Pure Logic Tests (JVM Unit Tests)**
 - Pure chess logic (conflict detection, solution validation)
 - Game state management and StateFlow behavior
+- [NQueensLogicTest - 26 tests](app/src/test/java/com/monday8am/nqueenspuzzle/logic/NQueensLogicTest.kt)
+- [NQueensStateTest - 11 test](app/src/test/java/com/monday8am/nqueenspuzzle/logic/NQueensGameTest.kt)
 
-**2. ViewModel & Presentation Tests (Roboelectric)**
+**2. ViewModel & UI interaction Tests (Roboelectric)**
 - Tests presentation logic, state transformations, and side effects.
+- EXPERIMENTAL: Tests user interactions with Compose components without requiring an emulator.
+- [GameViewModelTest - 28 tests](app/src/test/java/com/monday8am/nqueenspuzzle/ui/game/GameViewModelTest.kt)
+- [GameBoardUITest - 3 test](app/src/test/java/com/monday8am/nqueenspuzzle/ui/game/GameBoardUITest.kt)
 
-**3. UI Interaction Tests (Roboelectric + Compose)**
-- Tests user interactions with Compose components without requiring an emulator.
-
-**4. EXPERIMENTAL: Visual Regression Tests (Screenshot Testing)**
+**3. EXPERIMENTAL: Visual Regression Tests (Screenshot Testing)**
 - Uses Google's experimental Compose Preview Screenshot Testing framework to catch unintended visual changes.
+- [GameScreenTest - 1 test](app/src/androidTest/java/com/monday8am/nqueenspuzzle/ui/game/GameScreenTest.kt)
 
 ### CI/CD Integration
 
